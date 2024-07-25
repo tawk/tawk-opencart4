@@ -1,0 +1,13 @@
+{
+    "name": "tawk/tawk-opencart4",
+    "description": "tawk.to extension module for Opencart 4",
+    "version": "1.0.0",
+    "type": "project",
+    "license": "GPL3",
+    "require": {},
+    "scripts": {
+        "release": "composer run build:prod && composer run package",
+        "build:prod": "composer install --no-dev",
+        "package": "./build-package.sh"
+    }
+}
