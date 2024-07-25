@@ -20,6 +20,7 @@ class Tawkto extends Controller
 	{
 		$this->load->language('extension/tawkto/module/tawkto');
 		$this->document->setTitle($this->language->get('heading_title'));
+		$this->document->addStyle('../extension/tawkto/admin/view/stylesheet/index.css');
 
 		$this->load->model('setting/setting');
 		$this->load->model('setting/store');

@@ -1,0 +1,26 @@
+#widget_already_set {
+	width: 100%;
+	color: #3c763d;
+	border-color: #d6e9c6;
+	font-weight: bold;
+	margin: 20px 0 30px;
+}
+
+.content #loader {
+	width: 100%;
+	overflow: hidden;
+	text-align: center;
+	background-color: #fff;
+	height: 100px;
+	padding: 20px 0;
+}
+
+#tawkIframe {
+	min-height: 355px;
+	width: 100%;
+	border: medium none;
+	padding: 25px 0px;
+	background: #fff;
+	border-radius: 10px;
+	display: none;
+}
