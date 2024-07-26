@@ -119,8 +119,24 @@
 			if (e.data.action === 'reloadHeight') {
 				reloadIframeHeight(e.data.height);
 			}
+
+			if (e.data.action === 'changeStore') {
+				changeStore(e.data.id);
+			}
 		}
 	});
+
+	function changeStore(id) {
+		jQuery.post('{{url.change_store_url}}', {
+			id: id,
+		}, function (r) {
+			if (r.success) {
+				jQuery('input[name="page_id"]').val(r.pageId);
+				jQuery('input[name="widget_id"]').val(r.widgetId);
+				jQuery('input[name="store_id"]').val(id);
+			}
+		});
+	}
 
 	function reloadIframeHeight(height) {
 		if (!height) {
