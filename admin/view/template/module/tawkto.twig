@@ -80,11 +80,10 @@
 
 				<iframe id="tawkIframe" src=""></iframe>
 				<input type="hidden" class="hidden widget_vars" name="page_id"
-					value="{{ (widget_config.page_id is null)?0:widget_config.page_id}}">
+					value="{{ (widget_config.pageId is null)?0:widget_config.pageId}}">
 				<input type="hidden" class="hidden widget_vars" name="widget_id"
-					value="{{ (widget_config.widget_id is null)?0:widget_config.widget_id}}">
+					value="{{ (widget_config.widgetId is null)?0:widget_config.widgetId}}">
 				<input type="hidden" class="hidden widget_vars" name="store_id" value="{{store_id}}">
-				<input type="hidden" class="hidden widget_vars" name="store_layout_id" value="{{store_layout_id}}">
 			</div>
 		</div>
 	</div>
@@ -152,7 +151,6 @@
 				jQuery('input[name="widget_id"]').val(e.data.widgetId);
 				var newval = parseInt(store_layout);
 				jQuery('input[name="store_id"]').val(newval);
-				jQuery('input[name="store_layout_id"]').val(e.data.id);
 			} else {
 				e.source.postMessage({ action: 'setFail' }, baseUrl);
 			}
