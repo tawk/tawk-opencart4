@@ -252,11 +252,13 @@ class Tawkto extends Controller
 			die();
 		}
 
-		$data  = $this->getCurrentSettingsFor($id);
-		if (!isset($data['pageId']) || !isset($data['widgetId'])) {
+		$data = array();
+		$data['widget_config']  = $this->getCurrentSettingsFor($id);
+		if (!isset($data['widget_config']['pageId']) || !isset($data['widget_config']['widgetId'])) {
 			echo json_encode(array('success' => false));
 			die();
 		}
+		$data['display_opts']  = $this->getDisplayOpts($id);
 
 		$data['success'] = true;
 

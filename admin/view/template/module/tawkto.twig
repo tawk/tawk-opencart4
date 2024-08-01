@@ -175,9 +175,20 @@
 			id: id,
 		}, function (r) {
 			if (r.success) {
-				jQuery('input[name="page_id"]').val(r.pageId);
-				jQuery('input[name="widget_id"]').val(r.widgetId);
+				jQuery('input[name="page_id"]').val(r.widget_config.pageId);
+				jQuery('input[name="widget_id"]').val(r.widget_config.widgetId);
 				jQuery('input[name="store_id"]').val(id);
+				jQuery('input[name="always_display"]').prop('checked', r.display_opts.always_display);
+				jQuery('input[name="show_onfrontpage"]').prop('checked', r.display_opts.show_onfrontpage);
+				jQuery('input[name="show_oncategory"]').prop('checked', r.display_opts.show_oncategory);
+
+				if (r.display_opts.always_display) {
+					jQuery('.hide_specific').prop('disabled', false);
+					jQuery('.show_specific').prop('disabled', true);
+				} else {
+					jQuery('.hide_specific').prop('disabled', true);
+					jQuery('.show_specific').prop('disabled', false);
+				}
 			}
 		});
 	}
