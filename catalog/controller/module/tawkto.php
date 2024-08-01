@@ -86,14 +86,20 @@ class Tawkto extends Controller
 
 			if (false == $visibility->always_display) {
 
-				// custom pages
-				$show_pages = json_decode($visibility->show_oncustom);
-				$show = false;
-				$current_page = (string) trim($current_page);
+				/**
+				 * NOTE: commented lines because we haven't implement pattern matching
+				 *
+				 * Undefined property: stdClass::$show_oncustom
+				 */
 
-				if ($this->matchPatterns($current_page, $show_pages, $plugin_version_in_db)) {
-					$show = true;
-				}
+				// // custom pages
+				// $show_pages = json_decode($visibility->show_oncustom);
+				$show = false;
+				// $current_page = (string) trim($current_page);
+
+				// if ($this->matchPatterns($current_page, $show_pages, $plugin_version_in_db)) {
+				// 	$show = true;
+				// }
 
 				// category page
 				if (isset($this->request->get['route']) && stripos($this->request->get['route'], 'category') !== false) {
@@ -120,18 +126,18 @@ class Tawkto extends Controller
 				if (!$show) {
 					return;
 				}
-			} else {
-				$show = true;
-				$hide_pages = json_decode($visibility->hide_oncustom);
-				$current_page = (string) trim($current_page);
+			// } else {
+			// 	$show = true;
+			// 	$hide_pages = json_decode($visibility->hide_oncustom);
+			// 	$current_page = (string) trim($current_page);
 
-				if ($this->matchPatterns($current_page, $hide_pages, $plugin_version_in_db)) {
-					$show = false;
-				}
+			// 	if ($this->matchPatterns($current_page, $hide_pages, $plugin_version_in_db)) {
+			// 		$show = false;
+			// 	}
 
-				if (!$show) {
-					return;
-				}
+			// 	if (!$show) {
+			// 		return;
+			// 	}
 			}
 		}
 
