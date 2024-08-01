@@ -24,3 +24,30 @@
 	border-radius: 10px;
 	display: none;
 }
+
+#optionsSuccessMessage {
+	position: absolute;
+	background-color: #dff0d8;
+	color: #3c763d;
+	border-color: #d6e9c6;
+	font-weight: bold;
+	display: none;
+}
+
+.pull-right {
+	float: right;
+}
+
+.visibility_block {
+    background: #fff;
+    margin-top: -5px;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+}
+
+@media only screen and (max-width: 1200px) {
+    #optionsSuccessMessage {
+        position: relative;
+        margin-top: 1rem;
+    }
+}

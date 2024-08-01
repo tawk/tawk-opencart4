@@ -41,11 +41,13 @@ class Tawkto extends Controller
 		$data['url'] = array(
 			'set_widget_url' => $this->url->link('extension/tawkto/module/tawkto.setwidget', '', 'SSL') . '&user_token=' . $this->session->data['user_token'],
 			'remove_widget_url' => $this->url->link('extension/tawkto/module/tawkto.removewidget', '', 'SSL') . '&user_token=' . $this->session->data['user_token'],
-			'change_store_url' => $this->url->link('extension/tawkto/module/tawkto.changestore', '', 'SSL') . '&user_token=' . $this->session->data['user_token']
+			'change_store_url' => $this->url->link('extension/tawkto/module/tawkto.changestore', '', 'SSL') . '&user_token=' . $this->session->data['user_token'],
+			'set_options_url' => $this->url->link('extension/tawkto/module/tawkto.setoptions', '', 'SSL') . '&user_token=' . $this->session->data['user_token']
 		);
 
 		$data['widget_config']  = $this->getCurrentSettingsFor($store_id);
 		$data['store_id']  = $store_id;
+		$data['display_opts']  = $this->getDisplayOpts($store_id);
 
 		$data['same_user'] = true;
 		if (isset($data['widget_config']['user_id'])) {
@@ -262,6 +264,49 @@ class Tawkto extends Controller
 		die();
 	}
 
+	/*
+	 * Endpoint for setting widget options
+	 */
+	public function setoptions()
+	{
+		header('Content-Type: application/json');
+
+		$jsonOpts = array(
+			'always_display' => false,
+			'show_onfrontpage' => false,
+			'show_oncategory' => false,
+		);
+
+		if (isset($_REQUEST['options']) && !empty($_REQUEST['options'])) {
+			$options = str_ireplace('amp;', '', $_REQUEST['options']);
+			$options = explode('&', $options);
+
+			foreach ($options as $post) {
+				list($key, $value) = explode('=', $post);
+				switch ($key) {
+					case 'always_display':
+					case 'show_onfrontpage':
+					case 'show_oncategory':
+						$jsonOpts[$key] = $value == 1;
+						break;
+				}
+			}
+		}
+
+		$store_id = isset($_POST['store']) ? intval($_POST['store']) : null;
+		if (is_null($store_id)) {
+			echo json_encode(array('success' => false));
+			die();
+		}
+
+		$current_settings = $this->model_setting_setting->getSetting('module_tawkto', $store_id);
+		$current_settings['module_tawkto_visibility'] = json_encode($jsonOpts);
+		$this->model_setting_setting->editSetting('module_tawkto', $current_settings, $store_id);
+
+		echo json_encode(array('success' => true));
+		die();
+	}
+
 	/**
 	 * Page id is mongodb object id and widget id is alpanumeric
 	 * string
@@ -296,5 +341,27 @@ class Tawkto extends Controller
 		}
 
 		return true;
+	}
+
+	/**
+	 * Get display options for store
+	 *
+	 * @return Array
+	 */
+	public function getDisplayOpts($store_id = 0)
+	{
+		$current_settings = $this->model_setting_setting->getSetting('module_tawkto', $store_id);
+
+		$options = array(
+			'always_display' => true,
+			'show_onfrontpage' => false,
+			'show_oncategory' => false,
+		);
+		if (isset($current_settings['module_tawkto_visibility'])) {
+			$options = $current_settings['module_tawkto_visibility'];
+			$options = json_decode($options, true);
+		}
+
+		return $options;
 	}
 }
