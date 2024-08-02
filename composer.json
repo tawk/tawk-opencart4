@@ -4,10 +4,12 @@
     "version": "1.0.0",
     "type": "project",
     "license": "GPL3",
-    "require": {},
     "scripts": {
         "release": "composer run build:prod && composer run package",
         "build:prod": "composer install --no-dev",
-        "package": "./build-package.sh"
+        "test": "phpunit"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.2"
     }
 }
