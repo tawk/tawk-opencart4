@@ -9,7 +9,10 @@
 
 namespace Opencart\Catalog\Controller\Extension\Tawkto\Module;
 
+require_once DIR_EXTENSION . 'tawkto/vendor/autoload.php';
+
 use \Opencart\System\Engine\Controller;
+use \Tawk\Modules\UrlPatternMatcher;
 
 class Tawkto extends Controller
 {
@@ -83,23 +86,17 @@ class Tawkto extends Controller
 				$request_uri = substr($request_uri, 1);
 			}
 			$current_page = $this->config->get('config_url') . $request_uri;
+			$current_page = trim($current_page);
 
 			if (false == $visibility->always_display) {
 
-				/**
-				 * NOTE: commented lines because we haven't implement pattern matching
-				 *
-				 * Undefined property: stdClass::$show_oncustom
-				 */
-
-				// // custom pages
-				// $show_pages = json_decode($visibility->show_oncustom);
+				// custom pages
+				$show_pages = $visibility->show_oncustom;
 				$show = false;
-				// $current_page = (string) trim($current_page);
 
-				// if ($this->matchPatterns($current_page, $show_pages, $plugin_version_in_db)) {
-				// 	$show = true;
-				// }
+				if ($this->matchPatterns($current_page, $show_pages)) {
+					$show = true;
+				}
 
 				// category page
 				if (isset($this->request->get['route']) && stripos($this->request->get['route'], 'category') !== false) {
@@ -126,18 +123,17 @@ class Tawkto extends Controller
 				if (!$show) {
 					return;
 				}
-			// } else {
-			// 	$show = true;
-			// 	$hide_pages = json_decode($visibility->hide_oncustom);
-			// 	$current_page = (string) trim($current_page);
+			} else {
+				$show = true;
+				$hide_pages = $visibility->hide_oncustom;
 
-			// 	if ($this->matchPatterns($current_page, $hide_pages, $plugin_version_in_db)) {
-			// 		$show = false;
-			// 	}
+				if ($this->matchPatterns($current_page, $hide_pages)) {
+					$show = false;
+				}
 
-			// 	if (!$show) {
-			// 		return;
-			// 	}
+				if (!$show) {
+					return;
+				}
 			}
 		}
 
@@ -164,12 +160,11 @@ class Tawkto extends Controller
 
 	/**
 	 * Pattern matching
-	 * TODO: add UrlPatternMatcher
 	 *
 	 * @return boolean
 	 */
-	private function matchPatterns($current_page, $pages, $plugin_version)
+	private function matchPatterns($current_page, $pages)
 	{
-		return true;
+		return UrlPatternMatcher::match($current_page, $pages);
 	}
 }

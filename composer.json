@@ -4,12 +4,18 @@
     "version": "1.0.0",
     "type": "project",
     "license": "GPL3",
+    "require": {
+        "tawk/url-utils": "2.0.1"
+    },
     "scripts": {
         "release": "composer run build:prod && composer run package",
         "build:prod": "composer install --no-dev",
-        "test": "phpunit"
+        "package": "./build-package.sh"
     },
-    "require-dev": {
-        "phpunit/phpunit": "^11.2"
+    "repositories": {
+        "tawk-url-utils": {
+            "type": "vcs",
+            "url": "https://github.com/tawk/tawk-url-utils.git"
+        }
     }
 }

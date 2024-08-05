@@ -277,6 +277,8 @@ class Tawkto extends Controller
 			'always_display' => false,
 			'show_onfrontpage' => false,
 			'show_oncategory' => false,
+			'show_oncustom' => array(),
+			'hide_oncustom' => array(),
 		);
 
 		if (isset($_REQUEST['options']) && !empty($_REQUEST['options'])) {
@@ -286,6 +288,22 @@ class Tawkto extends Controller
 			foreach ($options as $post) {
 				list($key, $value) = explode('=', $post);
 				switch ($key) {
+					case 'show_oncustom':
+					case 'hide_oncustom':
+						// split by newlines, then remove empty lines
+						$value = urldecode($value);
+						$value = str_ireplace("\r", "\n", $value);
+						$value = explode("\n", $value);
+						$non_empty_values = array();
+						foreach ($value as $str) {
+							$trimmed = trim($str);
+							if ($trimmed !== '') {
+								$non_empty_values[] = $trimmed;
+							}
+						}
+						$jsonOpts[$key] = $non_empty_values;
+						break;
+
 					case 'always_display':
 					case 'show_onfrontpage':
 					case 'show_oncategory':
@@ -358,6 +376,8 @@ class Tawkto extends Controller
 			'always_display' => true,
 			'show_onfrontpage' => false,
 			'show_oncategory' => false,
+			'show_oncustom' => array(),
+			'hide_oncustom' => array(),
 		);
 		if (isset($current_settings['module_tawkto_visibility'])) {
 			$options = $current_settings['module_tawkto_visibility'];
