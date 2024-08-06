@@ -16,6 +16,8 @@ use Tawk\Test\TestFiles\Types\WebConfiguration;
 class WidgetSelectionTest extends TestCase {
 	private static Webdriver $driver;
 	private static Web $web;
+	private static string $property_id;
+	private static string $widget_id;
 
 	public static function setUpBeforeClass(): void {
 		$config = Config::get_config();
@@ -29,10 +31,17 @@ class WidgetSelectionTest extends TestCase {
 		$web_config->web = $config->web;
 		self::$web = new Web( self::$driver, $web_config );
 
+		self::$property_id = $config->tawk->property_id;
+		self::$widget_id = $config->tawk->widget_id;
+
 		self::$web->login();
+
+		self::$web->install_plugin();
+		self::$web->activate_plugin();
 	}
 
 	public static function tearDownAfterClass(): void {
+		self::$web->deactivate_plugin();
 		self::$web->uninstall_plugin();
 
 		self::$driver->quit();
@@ -40,25 +49,23 @@ class WidgetSelectionTest extends TestCase {
 
 	#[Test]
 	#[Group('widget_selection')]
-	public function should_be_able_to_install_and_uninstall_widget(): void {
-		self::$web->install_plugin();
+	public function should_be_able_to_set_and_remove_widget(): void {
+		$script_selector = '#tawk-script';
 
-		self::$web->activate_plugin();
+		self::$web->set_widget( self::$property_id, self::$widget_id );
 
-		$plugin_status = self::$web->get_plugin_status();
-		$this->assertEqualsCanonicalizing($plugin_status, array(
-			"installed" => true,
-			"activated" => true,
-		));
+		self::$driver->goto_page( self::$web->get_base_url() );
 
-		self::$web->deactivate_plugin();
+		$script = self::$driver->find_and_check_element( $script_selector );
 
-		self::$web->uninstall_plugin();
+		$this->assertNotNull( $script );
 
-		$plugin_status = self::$web->get_plugin_status();
-		$this->assertEqualsCanonicalizing($plugin_status, array(
-			"installed" => false,
-			"activated" => false,
-		));
+		self::$web->remove_widget();
+
+		self::$driver->goto_page( self::$web->get_base_url() );
+
+		$script = self::$driver->find_and_check_element( $script_selector );
+
+		$this->assertNull( $script );
 	}
 }

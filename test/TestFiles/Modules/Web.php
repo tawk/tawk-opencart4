@@ -3,6 +3,7 @@
 namespace Tawk\Test\TestFiles\Modules;
 
 use Tawk\Test\TestFiles\Helpers\Common;
+use Tawk\Test\TestFiles\Types\TawkConfig;
 use Tawk\Test\TestFiles\Types\WebConfiguration;
 use Tawk\Test\TestFiles\Types\WebUserConfig;
 
@@ -14,13 +15,16 @@ class Web {
 	private string $dashboard_url;
 	private string $installer_url;
 	private string $extension_url;
+	private string $plugin_settings_url;
 	private string $logout_url;
 
 	private WebUserConfig $admin;
+	private TawkConfig $tawk;
 
 	private bool $logged_in;
 	private bool $plugin_installed;
 	private bool $plugin_activated;
+	private bool $widget_set;
 
 	public function __construct( Webdriver $driver, WebConfiguration $config ) {
 		$this->driver = $driver;
@@ -30,6 +34,7 @@ class Web {
 		$this->dashboard_url = $this->base_url . '?route=common/dashboard';
 		$this->installer_url  = $this->admin_url . '?route=marketplace/installer';
 		$this->extension_url     = $this->admin_url . '?route=marketplace/extension';
+		$this->plugin_settings_url = $this->admin_url . '?route=extension/tawkto/module/tawkto';
 		$this->logout_url = $this->admin_url . '?route=common/logout';
 
 		$this->admin = $config->web->admin;
@@ -39,6 +44,10 @@ class Web {
 		$this->plugin_installed = false;
 		$this->plugin_activated = false;
 		$this->widget_set       = false;
+	}
+
+	public function get_base_url(): string {
+		return $this->base_url;
 	}
 
 	public function login() {
@@ -184,5 +193,61 @@ class Web {
 		$this->driver->wait_for_alert_and_accept();
 
 		$this->plugin_activated = false;
+	}
+
+	public function set_widget( string $property_id, string $widget_id ) {
+		if ( $this->widget_set ) {
+			return;
+		}
+
+		$this->driver->goto_page( $this->plugin_settings_url . "&user_token=" . $this->user_token );
+
+		$this->driver->wait_for_frame_and_switch( '#tawkIframe', 10 );
+
+		// driver currently on tawkIframe frame
+		$login_form_id = '#loginForm';
+		$login_form    = $this->driver->find_and_check_element( $login_form_id );
+		if ( false === is_null( $login_form ) ) {
+			$this->driver->find_element_and_input( '#email', $this->tawk->username );
+			$this->driver->find_element_and_input( '#password', $this->tawk->password );
+			$this->driver->find_element_and_click( '#login-button' );
+		}
+
+		$property_form_id = '#propertyForm';
+		$this->driver->wait_until_element_is_located( $property_form_id );
+		$this->driver->find_element_and_click( '#property' );
+		$this->driver->find_element_and_click( 'li[data-id="' . $property_id . '"]' );
+		$this->driver->find_element_and_click( '#widget-' . $property_id );
+		$this->driver->find_element_and_click( 'li[data-id="' . $widget_id . '"]' );
+		$this->driver->find_element_and_click( '#addWidgetToPage' );
+
+		// ensures widget is added.
+		$this->driver->wait_for_seconds( 1 );
+
+		$this->widget_set = true;
+
+		// go back to original frame.
+		$this->driver->switch_to_default_frame();
+	}
+
+	public function remove_widget() {
+		if ( false === $this->widget_set ) {
+			return;
+		}
+
+		$this->driver->goto_page( $this->plugin_settings_url . "&user_token=" . $this->user_token );
+
+		$this->driver->wait_for_frame_and_switch( '#tawkIframe', 10 );
+
+		$this->driver->wait_until_element_is_located( '#propertyForm' );
+		$this->driver->find_element_and_click( '#removeCurrentWidget' );
+
+		// ensures widget is removed.
+		$this->driver->wait_for_seconds( 1 );
+
+		$this->widget_set = false;
+
+		// go back to original frame.
+		$this->driver->switch_to_default_frame();
 	}
 }

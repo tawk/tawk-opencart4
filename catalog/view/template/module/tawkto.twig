@@ -6,7 +6,7 @@
 #}
 
 <!--Start of tawk.to Script-->
-<script type="text/javascript">
+<script type="text/javascript" {% if page_id is not null and widget_id is not null %}id="tawk-script" {% endif %}>
 	var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
 
 	Tawk_API.onLoad = function () {

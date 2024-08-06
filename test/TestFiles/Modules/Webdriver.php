@@ -56,6 +56,14 @@ class Webdriver {
 		return $this->driver->findElement( WebDriverBy::cssSelector( $selector ) );
 	}
 
+	public function find_and_check_element( string $selector ) {
+		try {
+			return $this->driver->findElement( WebDriverBy::cssSelector( $selector ) );
+		} catch ( Exception $err ) {
+			return null;
+		}
+	}
+
 	public function find_element_by_xpath( string $xpath ) {
 		$this->wait_until_element_is_located_by_xpath( $xpath );
 		return $this->driver->findElement( WebDriverBy::xpath( $xpath ) );
@@ -124,6 +132,18 @@ class Webdriver {
 		$this->driver->wait()->until( WebDriverExpectedCondition::alertIsPresent() );
 		$this->driver->switchTo()->alert()->accept();
 		$this->switch_to_default_frame();
+	}
+
+	public function wait_for_frame_and_switch(
+		string $selector,
+		int $wait_sec = 60,
+		int $interval_ms = 500
+	): void {
+		$this->driver->wait( $wait_sec, $interval_ms )->until(
+			WebDriverExpectedCondition::frameToBeAvailableAndSwitchToIt(
+				$this->find_element( $selector )
+			)
+		);
 	}
 
 	public function switch_to_default_frame(): void {
