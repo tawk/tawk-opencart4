@@ -50,8 +50,8 @@ class Tawkto extends Controller
 		$data['display_opts']  = $this->getDisplayOpts($store_id);
 
 		$data['same_user'] = true;
-		if (isset($data['widget_config']['user_id'])) {
-			$data['same_user']  = ($data['widget_config']['user_id'] == $this->session->data['user_id']);
+		if (isset($data['widget_config']['userId'])) {
+			$data['same_user']  = ($data['widget_config']['userId'] == $this->session->data['user_id']);
 		}
 
 		$data['header'] = $this->load->controller('common/header');
@@ -166,7 +166,8 @@ class Tawkto extends Controller
 
 			return array(
 				'pageId'   => $settings['page_id'],
-				'widgetId' => $settings['widget_id']
+				'widgetId' => $settings['widget_id'],
+				'userId' => $settings['user_id'],
 			);
 		} else {
 			return array();
