@@ -5,11 +5,13 @@ namespace Tawk\Test\TestFiles\Modules;
 use Facebook\WebDriver\WebDriverBy;
 use Facebook\WebDriver\WebDriverExpectedCondition;
 use Facebook\WebDriver\Remote\RemoteWebDriver;
-
+use Facebook\WebDriver\WebDriverSelect;
 use Tawk\Test\TestFiles\Helpers\Common;
 use Tawk\Test\TestFiles\Types\SeleniumConfig;
 use Tawk\Test\TestFiles\Types\WebdriverConfig;
 use Tawk\Test\TestFiles\Helpers\Webdriver as WebdriverHelper;
+
+use Exception;
 
 class Webdriver {
 	protected RemoteWebDriver $driver;
@@ -28,8 +30,6 @@ class Webdriver {
 			$this->selenium->is_headless
 		);
 
-		var_dump($selenium_url);
-		var_dump($capabilities);
 		$this->driver = RemoteWebDriver::create(
 			$selenium_url,
 			$capabilities,
@@ -56,6 +56,34 @@ class Webdriver {
 		return $this->driver->findElement( WebDriverBy::cssSelector( $selector ) );
 	}
 
+	public function find_element_by_xpath( string $xpath ) {
+		$this->wait_until_element_is_located_by_xpath( $xpath );
+		return $this->driver->findElement( WebDriverBy::xpath( $xpath ) );
+	}
+
+	public function find_and_check_element_by_xpath( string $xpath ) {
+		try {
+			return $this->driver->findElement( WebDriverBy::xpath( $xpath ) );
+		} catch ( Exception $err ) {
+			return null;
+		}
+	}
+
+	public function find_element_and_click_by_xpath( string $xpath ) {
+		// BUG: doesn't work in headless mode
+		// return $this->find_element_by_xpath( $xpath )->click();
+		$element = $this->find_element_by_xpath( $xpath );
+		$action = $this->driver->action();
+		$action->click( $element )->perform();
+	}
+
+	public function find_dropdown_and_select( string $selector, string $option ) {
+		$this->wait_until_element_is_located( $selector );
+
+		$select = new WebDriverSelect( $this->driver->findElement( WebDriverBy::cssSelector( $selector ) ) );
+		$select->selectByVisiblePartialText( $option );
+	}
+
 	public function find_element_and_click( string $selector ) {
 		return $this->find_element( $selector )->click();
 	}
@@ -80,6 +108,28 @@ class Webdriver {
 		);
 	}
 
+	public function wait_until_element_is_located_by_xpath(
+		string $xpath,
+		int $wait_sec = 60,
+		int $interval_ms = 500
+	) {
+		return $this->driver->wait( $wait_sec, $interval_ms )->until(
+			WebDriverExpectedCondition::presenceOfElementLocated(
+				WebDriverBy::xpath( $xpath )
+			)
+		);
+	}
+
+	public function wait_for_alert_and_accept(): void {
+		$this->driver->wait()->until( WebDriverExpectedCondition::alertIsPresent() );
+		$this->driver->switchTo()->alert()->accept();
+		$this->switch_to_default_frame();
+	}
+
+	public function switch_to_default_frame(): void {
+		$this->driver->switchTo()->defaultContent();
+	}
+
 	public function wait_until_page_fully_loads(
 		int $wait_sec = 60,
 		int $interval_ms = 500
@@ -91,6 +141,9 @@ class Webdriver {
 		);
 	}
 
+	public function wait_for_seconds( int $seconds = 5 ) {
+		$this->driver->manage()->timeouts()->implicitlyWait( $seconds );
+	}
 
 	public function quit(): void {
 		$this->driver->quit();

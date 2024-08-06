@@ -29,19 +29,36 @@ class WidgetSelectionTest extends TestCase {
 		$web_config->web = $config->web;
 		self::$web = new Web( self::$driver, $web_config );
 
+		self::$web->login();
 	}
 
 	public static function tearDownAfterClass(): void {
+		self::$web->uninstall_plugin();
+
 		self::$driver->quit();
 	}
 
 	#[Test]
 	#[Group('widget_selection')]
-	public function should_be_able_to_login_and_logout(): void {
-		self::$web->login();
-		$this->assertTrue(self::$web->is_logged_in());
+	public function should_be_able_to_install_and_uninstall_widget(): void {
+		self::$web->install_plugin();
 
-		self::$web->logout();
-		$this->assertFalse(self::$web->is_logged_in());
+		self::$web->activate_plugin();
+
+		$plugin_status = self::$web->get_plugin_status();
+		$this->assertEqualsCanonicalizing($plugin_status, array(
+			"installed" => true,
+			"activated" => true,
+		));
+
+		self::$web->deactivate_plugin();
+
+		self::$web->uninstall_plugin();
+
+		$plugin_status = self::$web->get_plugin_status();
+		$this->assertEqualsCanonicalizing($plugin_status, array(
+			"installed" => false,
+			"activated" => false,
+		));
 	}
 }

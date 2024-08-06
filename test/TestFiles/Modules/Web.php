@@ -12,11 +12,15 @@ class Web {
 	private string $base_url;
 	private string $admin_url;
 	private string $dashboard_url;
+	private string $installer_url;
+	private string $extension_url;
 	private string $logout_url;
 
 	private WebUserConfig $admin;
 
 	private bool $logged_in;
+	private bool $plugin_installed;
+	private bool $plugin_activated;
 
 	public function __construct( Webdriver $driver, WebConfiguration $config ) {
 		$this->driver = $driver;
@@ -24,6 +28,8 @@ class Web {
 		$this->base_url = Common::build_url( $config->web->url );
 		$this->admin_url           = $this->base_url . 'administration/index.php';
 		$this->dashboard_url = $this->base_url . '?route=common/dashboard';
+		$this->installer_url  = $this->admin_url . '?route=marketplace/installer';
+		$this->extension_url     = $this->admin_url . '?route=marketplace/extension';
 		$this->logout_url = $this->admin_url . '?route=common/logout';
 
 		$this->admin = $config->web->admin;
@@ -80,4 +86,103 @@ class Web {
 		return true === $this->logged_in && '' !== $this->user_token;
 	}
 
+	public function get_plugin_status() {
+		return array(
+			"installed" => $this->plugin_installed,
+			"activated" => $this->plugin_activated
+		);
+	}
+
+	public function install_plugin() {
+		if ( true === $this->plugin_installed ) {
+			return;
+		}
+
+		$this->driver->goto_page( $this->installer_url . "&user_token=" . $this->user_token );
+
+		$uninstall_xpath = '//a[contains(@href, "https://tawk.to")]/../following-sibling::td[3]/a[1]/i[contains(@class, "fa-minus-circle")]';
+		$uninstall_link = $this->driver->find_and_check_element_by_xpath( $uninstall_xpath );
+
+		if ( false === is_null( $uninstall_link ) ) {
+			$this->plugin_installed = true;
+			return;
+		}
+
+		$install_xpath = '//a[contains(@href, "https://tawk.to")]/../following-sibling::td[3]/a[1]/i[contains(@class, "fa-plus-circle")]';
+		$this->driver->find_element_and_click_by_xpath( $install_xpath );
+
+		$this->plugin_installed = true;
+	}
+
+	public function uninstall_plugin() {
+		if ( false === $this->plugin_installed ) {
+			return;
+		}
+
+		$this->driver->goto_page( $this->installer_url . "&user_token=" . $this->user_token );
+
+		$install_xpath = '//a[contains(@href, "https://tawk.to")]/../following-sibling::td[3]/a[1]/i[contains(@class, "fa-plus-circle")]';
+		$install_link = $this->driver->find_and_check_element_by_xpath( $install_xpath );
+
+		if ( false === is_null( $install_link ) ) {
+			$this->plugin_installed = false;
+			return;
+		}
+
+		$uninstall_xpath = '//a[contains(@href, "https://tawk.to")]/../following-sibling::td[3]/a[1]/i[contains(@class, "fa-minus-circle")]';
+		$this->driver->find_element_and_click_by_xpath( $uninstall_xpath );
+
+		$this->plugin_installed = false;
+	}
+
+	public function activate_plugin() {
+		if ( true === $this->plugin_activated ) {
+			return;
+		}
+
+		$this->driver->goto_page( $this->extension_url . "&user_token=" . $this->user_token );
+
+		$this->driver->find_dropdown_and_select( '#input-type', 'Modules' );
+
+		$this->driver->wait_for_seconds( 1 );
+
+		$deactivate_xpath = '//a[contains(@href, "tawkto")]/i[contains(@class, "fa-minus-circle")]';
+		$deactivate_link = $this->driver->find_and_check_element_by_xpath( $deactivate_xpath );
+
+		if ( false === is_null( $deactivate_link ) ) {
+			$this->plugin_activated = true;
+			return;
+		}
+
+		$activate_xpath = '//a[contains(@href, "tawkto")]/i[contains(@class, "fa-plus-circle")]';
+		$this->driver->find_element_and_click_by_xpath( $activate_xpath );
+
+		$this->plugin_activated = true;
+	}
+
+	public function deactivate_plugin() {
+		if ( false === $this->plugin_activated ) {
+			return;
+		}
+
+		$this->driver->goto_page( $this->extension_url . "&user_token=" . $this->user_token );
+
+		$this->driver->find_dropdown_and_select( '#input-type', 'Modules' );
+
+		$this->driver->wait_for_seconds( 1 );
+
+		$activate_xpath = '//a[contains(@href, "tawkto")]/i[contains(@class, "fa-plus-circle")]';
+		$activate_link = $this->driver->find_and_check_element_by_xpath( $activate_xpath );
+
+		if ( false === is_null( $activate_link ) ) {
+			$this->plugin_activated = false;
+			return;
+		}
+
+		$deactivate_xpath = '//a[contains(@href, "tawkto")]/i[contains(@class, "fa-minus-circle")]';
+		$this->driver->find_element_and_click_by_xpath( $deactivate_xpath );
+		$this->driver->wait_for_alert_and_accept();
+
+		$this->plugin_activated = false;
+	}
 }
