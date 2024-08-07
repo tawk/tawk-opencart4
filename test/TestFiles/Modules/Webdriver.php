@@ -100,10 +100,6 @@ class Webdriver {
 		return $this->find_element( $selector )->sendKeys( $input_value );
 	}
 
-	public function find_element_and_get_attribute_value( string $selector, string $attribute ) {
-		return $this->find_element( $selector )->getAttribute( $attribute );
-	}
-
 	public function wait_until_element_is_located(
 		string $selector,
 		int $wait_sec = 60,

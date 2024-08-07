@@ -66,6 +66,7 @@ These are the environment variables needed to run the selenium tests locally usi
 | TAWK_PASSWORD | tawk.to account password | Yes |
 | WEB_HOST | Wordpress web hostname | Yes |
 | WEB_PORT | Wordpress web port | No |
+| SECOND_STORE | Second store route | Yes |
 | SELENIUM_BROWSER | Browser type (chrome, firefox, edge) | Yes |
 | SELENIUM_HOST | Selenium host | Yes |
 | SELENIUM_PORT | Selenium port | No |
@@ -81,6 +82,7 @@ export TAWK_USERNAME='<TAWK_USERNAME>'
 export TAWK_PASSWORD='<TAWK_PASSWORD>'
 export WEB_HOST='127.0.0.1.nip.io'
 export WEB_PORT='8080'
+export SECOND_STORE='second_store'
 export SELENIUM_BROWSER='chrome'
 export SELENIUM_HOST='localhost'
 export SELENIUM_PORT='4444'

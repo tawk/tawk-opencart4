@@ -32,6 +32,7 @@ class WebUserConfig {
 class WebConfig {
 	public UrlConfig $url;
 	public WebUserConfig $admin;
+	public string $second_store;
 }
 
 class SeleniumConfig {
