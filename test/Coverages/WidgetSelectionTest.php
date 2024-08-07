@@ -18,6 +18,7 @@ class WidgetSelectionTest extends TestCase {
 	private static Web $web;
 	private static string $property_id;
 	private static string $widget_id;
+	private static string $second_store;
 
 	public static function setUpBeforeClass(): void {
 		$config = Config::get_config();
@@ -33,8 +34,10 @@ class WidgetSelectionTest extends TestCase {
 
 		self::$property_id = $config->tawk->property_id;
 		self::$widget_id = $config->tawk->widget_id;
+		self::$second_store = $config->web->second_store;
 
 		self::$web->login();
+		self::$web->setup_multistore( self::$second_store );
 
 		self::$web->install_plugin();
 		self::$web->activate_plugin();
@@ -43,6 +46,8 @@ class WidgetSelectionTest extends TestCase {
 	public static function tearDownAfterClass(): void {
 		self::$web->deactivate_plugin();
 		self::$web->uninstall_plugin();
+
+		self::$web->logout();
 
 		self::$driver->quit();
 	}
@@ -63,6 +68,28 @@ class WidgetSelectionTest extends TestCase {
 		self::$web->remove_widget();
 
 		self::$driver->goto_page( self::$web->get_base_url() );
+
+		$script = self::$driver->find_and_check_element( $script_selector );
+
+		$this->assertNull( $script );
+	}
+
+	#[Test]
+	#[Group('widget_selection')]
+	public function should_be_able_to_set_and_remove_widget_for_multiple_stores(): void {
+		$script_selector = '#tawk-script';
+
+		self::$web->set_widget( self::$property_id, self::$widget_id, self::$second_store );
+
+		self::$driver->goto_page( self::$web->get_base_url() . '/' . self::$second_store );
+
+		$script = self::$driver->find_and_check_element( $script_selector );
+
+		$this->assertNotNull( $script );
+
+		self::$web->remove_widget( self::$second_store );
+
+		self::$driver->goto_page( self::$web->get_base_url() . '/' . self::$second_store );
 
 		$script = self::$driver->find_and_check_element( $script_selector );
 

@@ -16,6 +16,8 @@ services:
       - db
     build:
       context: .
+      args:
+        SECOND_STORE: ${SECOND_STORE}
     ports:
       - 8080:8080
       - 8443:8443

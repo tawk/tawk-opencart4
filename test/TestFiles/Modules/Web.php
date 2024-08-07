@@ -16,6 +16,7 @@ class Web {
 	private string $installer_url;
 	private string $extension_url;
 	private string $plugin_settings_url;
+	private string $settings_url;
 	private string $logout_url;
 
 	private WebUserConfig $admin;
@@ -35,6 +36,7 @@ class Web {
 		$this->installer_url  = $this->admin_url . '?route=marketplace/installer';
 		$this->extension_url     = $this->admin_url . '?route=marketplace/extension';
 		$this->plugin_settings_url = $this->admin_url . '?route=extension/tawkto/module/tawkto';
+		$this->settings_url = $this->admin_url . '?route=setting/store';
 		$this->logout_url = $this->admin_url . '?route=common/logout';
 
 		$this->admin = $config->web->admin;
@@ -51,8 +53,8 @@ class Web {
 	}
 
 	public function login() {
-		if ( true === $this->logged_in ) {
-			$this->driver->goto_page( $this->dashboard_url );
+		if ( true === $this->logged_in && '' !== $this->user_token ) {
+			$this->driver->goto_page( $this->dashboard_url . "&user_token=" . $this->user_token );
 			return;
 		}
 
@@ -68,7 +70,7 @@ class Web {
 
 		$this->driver->goto_page( $this->dashboard_url );
 
-		$title_url = $this->driver->find_element_and_get_attribute_value('header a.navbar-brand', 'href');
+		$title_url = $this->driver->get_driver()->getCurrentURL();
 		if ( false !== stripos($title_url, 'user_token') ) {
 			$parsed_url = parse_url($title_url);
 			$query_params = array();
@@ -195,12 +197,19 @@ class Web {
 		$this->plugin_activated = false;
 	}
 
-	public function set_widget( string $property_id, string $widget_id ) {
+	public function set_widget(
+		string $property_id,
+		string $widget_id,
+		string $store_name = "Default store"
+	) {
 		if ( $this->widget_set ) {
 			return;
 		}
 
 		$this->driver->goto_page( $this->plugin_settings_url . "&user_token=" . $this->user_token );
+
+		$store_hierarchy = $this->driver->get_driver()->executeScript('return JSON.stringify(storeHierarchy);');
+		$store_hierarchy = json_decode( $store_hierarchy, true );
 
 		$this->driver->wait_for_frame_and_switch( '#tawkIframe', 10 );
 
@@ -215,6 +224,15 @@ class Web {
 
 		$property_form_id = '#propertyForm';
 		$this->driver->wait_until_element_is_located( $property_form_id );
+
+		foreach ( $store_hierarchy as $store ) {
+			if ( $store_name === $store['name'] && "0" !== $store['id'] ) {
+				$this->driver->find_element_and_click( '#store' );
+				$this->driver->wait_until_element_is_located( 'li[data-id="' . $store['id'] . '"]' );
+				$this->driver->find_element_and_click( 'li[data-id="' . $store['id'] . '"]' );
+			}
+		}
+
 		$this->driver->find_element_and_click( '#property' );
 		$this->driver->find_element_and_click( 'li[data-id="' . $property_id . '"]' );
 		$this->driver->find_element_and_click( '#widget-' . $property_id );
@@ -230,16 +248,28 @@ class Web {
 		$this->driver->switch_to_default_frame();
 	}
 
-	public function remove_widget() {
+	public function remove_widget( string $store_name = "Default store" ) {
 		if ( false === $this->widget_set ) {
 			return;
 		}
 
 		$this->driver->goto_page( $this->plugin_settings_url . "&user_token=" . $this->user_token );
 
+		$store_hierarchy = $this->driver->get_driver()->executeScript('return JSON.stringify(storeHierarchy);');
+		$store_hierarchy = json_decode( $store_hierarchy, true );
+
 		$this->driver->wait_for_frame_and_switch( '#tawkIframe', 10 );
 
 		$this->driver->wait_until_element_is_located( '#propertyForm' );
+
+		foreach ( $store_hierarchy as $store ) {
+			if ( $store_name === $store['name'] && "0" !== $store['id'] ) {
+				$this->driver->find_element_and_click( '#store' );
+				$this->driver->wait_until_element_is_located( 'li[data-id="' . $store['id'] . '"]' );
+				$this->driver->find_element_and_click( 'li[data-id="' . $store['id'] . '"]' );
+			}
+		}
+
 		$this->driver->find_element_and_click( '#removeCurrentWidget' );
 
 		// ensures widget is removed.
@@ -249,5 +279,33 @@ class Web {
 
 		// go back to original frame.
 		$this->driver->switch_to_default_frame();
+	}
+
+	public function setup_multistore( string $second_store ) {
+		$this->driver->goto_page( $this->settings_url . "&user_token=" . $this->user_token );
+
+		$second_store_td = $this->driver->find_and_check_element_by_xpath( '//td[text()="second_store"]' );
+		if ( false === is_null( $second_store_td ) ) {
+			return;
+		}
+
+		$new_store_xpath = '//i[contains(@class, "fa-plus")]';
+		$this->driver->find_element_and_click_by_xpath( $new_store_xpath );
+
+		$this->driver->find_element_and_input( '#input-url', $this->base_url . $second_store . '/' );
+		$this->driver->find_element_and_input( '#input-meta-title', $second_store );
+
+		$store_tab_xpath = '//a[contains(@class, "nav-link") and contains(@href, "tab-store")]';
+		$this->driver->find_element_and_click_by_xpath( $store_tab_xpath );
+
+		$this->driver->find_element_and_input( '#input-name', $second_store );
+		$this->driver->find_element_and_input( '#input-owner', $second_store );
+		$this->driver->find_element_and_input( '#input-address', $second_store );
+		$this->driver->find_element_and_input( '#input-email', $second_store . '@store.com' );
+		$this->driver->find_element_and_input( '#input-telephone', '01234567890' );
+
+		$this->driver->find_element_and_click( 'button[type="submit"]' );
+
+		sleep(5);
 	}
 }

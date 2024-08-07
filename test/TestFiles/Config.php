@@ -62,6 +62,7 @@ class Config {
 		$config        = new WebConfig();
 		$config->url   = $url;
 		$config->admin = $admin;
+		$config->second_store = Common::get_env( 'SECOND_STORE' );
 
 		return $config;
 	}
