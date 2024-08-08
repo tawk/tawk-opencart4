@@ -308,4 +308,18 @@ class Web {
 
 		sleep(5);
 	}
+
+	public function goto_plugin_settings() {
+		$this->driver->goto_page( $this->plugin_settings_url . '&user_token=' . $this->user_token );
+	}
+
+	public function toggle_checkbox( string $selector, bool $checked ) {
+		$checkbox = $this->driver->find_element( $selector );
+
+		if ( $checkbox->isSelected() === $checked ) {
+			return;
+		}
+
+		$this->driver->click_element( $checkbox );
+	}
 }

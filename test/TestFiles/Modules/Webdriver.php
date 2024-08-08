@@ -81,8 +81,7 @@ class Webdriver {
 		// BUG: doesn't work in headless mode
 		// return $this->find_element_by_xpath( $xpath )->click();
 		$element = $this->find_element_by_xpath( $xpath );
-		$action = $this->driver->action();
-		$action->click( $element )->perform();
+		$this->click_element( $element );
 	}
 
 	public function find_dropdown_and_select( string $selector, string $option ) {
@@ -93,7 +92,9 @@ class Webdriver {
 	}
 
 	public function find_element_and_click( string $selector ) {
-		return $this->find_element( $selector )->click();
+		// return $this->find_element( $selector )->click();
+		$element = $this->find_element( $selector );
+		$this->click_element( $element );
 	}
 
 	public function find_element_and_input( string $selector, string $input_value ) {
@@ -104,6 +105,11 @@ class Webdriver {
 		return $this->find_element( $selector )->getAttribute( $attribute );
 	}
 
+	public function click_element( $element ) {
+		$action = $this->driver->action();
+		$action->click( $element )->perform();
+	}
+
 	public function wait_until_element_is_located(
 		string $selector,
 		int $wait_sec = 60,
@@ -111,6 +117,18 @@ class Webdriver {
 	) {
 		return $this->driver->wait( $wait_sec, $interval_ms )->until(
 			WebDriverExpectedCondition::presenceOfElementLocated(
+				WebDriverBy::cssSelector( $selector )
+			)
+		);
+	}
+
+	public function wait_until_element_is_clickable(
+		string $selector,
+		int $wait_sec = 60,
+		int $interval_ms = 500
+	) {
+		return $this->driver->wait( $wait_sec, $interval_ms )->until(
+			WebDriverExpectedCondition::elementToBeClickable(
 				WebDriverBy::cssSelector( $selector )
 			)
 		);
