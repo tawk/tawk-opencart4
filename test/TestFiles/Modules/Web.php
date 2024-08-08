@@ -228,8 +228,8 @@ class Web {
 		foreach ( $store_hierarchy as $store ) {
 			if ( $store_name === $store['name'] && "0" !== $store['id'] ) {
 				$this->driver->find_element_and_click( '#store' );
-				$this->driver->wait_until_element_is_located( 'li[data-id="' . $store['id'] . '"]' );
-				$this->driver->find_element_and_click( 'li[data-id="' . $store['id'] . '"]' );
+				sleep(3);
+				$this->driver->find_element_and_click( 'li[data-id="' . $store['id'] . '"] a' );
 			}
 		}
 
@@ -265,8 +265,8 @@ class Web {
 		foreach ( $store_hierarchy as $store ) {
 			if ( $store_name === $store['name'] && "0" !== $store['id'] ) {
 				$this->driver->find_element_and_click( '#store' );
-				$this->driver->wait_until_element_is_located( 'li[data-id="' . $store['id'] . '"]' );
-				$this->driver->find_element_and_click( 'li[data-id="' . $store['id'] . '"]' );
+				sleep(3);
+				$this->driver->find_element_and_click( 'li[data-id="' . $store['id'] . '"] a' );
 			}
 		}
 
