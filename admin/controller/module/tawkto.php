@@ -159,8 +159,8 @@ class Tawkto extends Controller
 
 		$currentSettings = $this->model_setting_setting->getSetting('module_tawkto', $store_id);
 
-		if (isset($currentSettings['module_tawkto_widget']['widget_config_' . $store_id])) {
-			$settings = $currentSettings['module_tawkto_widget']['widget_config_' . $store_id];
+		if (isset($currentSettings['module_tawkto_widget']['widget_config'])) {
+			$settings = $currentSettings['module_tawkto_widget']['widget_config'];
 
 			return array(
 				'pageId'   => $settings['page_id'],
@@ -189,7 +189,7 @@ class Tawkto extends Controller
 
 		$currentSettings = $this->model_setting_setting->getSetting('module_tawkto', $store_id);
 		$currentSettings['module_tawkto_widget'] = isset($currentSettings['module_tawkto_widget']) ? $currentSettings['module_tawkto_widget'] : array();
-		$currentSettings['module_tawkto_widget']['widget_config_' . $store_id] = array(
+		$currentSettings['module_tawkto_widget']['widget_config'] = array(
 			'page_id' => $page_id,
 			'widget_id' => $widget_id,
 			'user_id' => $this->session->data['user_id']
@@ -215,7 +215,7 @@ class Tawkto extends Controller
 		}
 
 		$currentSettings = $this->model_setting_setting->getSetting('module_tawkto');
-		unset($currentSettings['module_tawkto_widget']['widget_config_' . $store_id]);
+		unset($currentSettings['module_tawkto_widget']['widget_config']);
 
 		$this->model_setting_setting->editSetting('module_tawkto', $currentSettings, $store_id);
 

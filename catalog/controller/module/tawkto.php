@@ -46,8 +46,6 @@ class Tawkto extends Controller
 	{
 		$store_id = $this->config->get('config_store_id');
 		$settings = $this->model_setting_setting->getSetting('module_tawkto', $store_id);
-		$language_id = $this->config->get('config_language_id');
-		$layout_id = $this->getLayoutId();
 
 		$visibility = false;
 		if (isset($settings['module_tawkto_visibility'])) {
@@ -60,17 +58,8 @@ class Tawkto extends Controller
 		}
 		$settings = $settings['module_tawkto_widget'];
 
-		if (isset($settings['widget_config_' . $store_id])) {
-			$widget = $settings['widget_config_' . $store_id];
-		}
-
-		// TODO: are these necessary?
-		if (isset($settings['widget_config_' . $store_id . '_' . $language_id])) {
-			$widget = $settings['widget_config_' . $store_id . '_' . $language_id];
-		}
-
-		if (isset($settings['widget_config_' . $store_id . '_' . $language_id . '_' . $layout_id])) {
-			$widget = $settings['widget_config_' . $store_id . '_' . $language_id . '_' . $layout_id];
+		if (isset($settings['widget_config'])) {
+			$widget = $settings['widget_config'];
 		}
 
 		// get visibility options
