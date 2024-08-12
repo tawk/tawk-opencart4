@@ -25,6 +25,22 @@ class Tawkto extends Controller
 		$this->load->model('setting/setting');
 		$this->load->model('setting/store');
 
+        $data['breadcrumbs'] = array();
+        $data['breadcrumbs'][] = array(
+                'text' => $this->language->get('text_home'),
+                'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'], 'SSL'),
+            );
+
+        $data['breadcrumbs'][] = array(
+                'text' => $this->language->get('text_extension'),
+                'href' => $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'], 'SSL'),
+            );
+
+        $data['breadcrumbs'][] = array(
+                'text' => $this->language->get('heading_title'),
+                'href' => $this->url->link('extension/module/tawkto', 'user_token=' . $this->session->data['user_token'], 'SSL'),
+            );
+
 		// get current store and load tawk.to options
 		$store_id = 0;
 		$stores = $this->model_setting_store->getStores();

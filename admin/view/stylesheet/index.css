@@ -1,3 +1,6 @@
+html {
+	font-size: unset;
+}
 #widget_already_set {
 	width: 100%;
 	color: #3c763d;
