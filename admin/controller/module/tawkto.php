@@ -154,13 +154,13 @@ class Tawkto extends Controller
 	 * @param  Int $id
 	 * @return Array
 	 */
-	private function getCurrentSettingsFor($id)
+	private function getCurrentSettingsFor($store_id)
 	{
 
-		$currentSettings = $this->model_setting_setting->getSetting('module_tawkto', $id);
+		$currentSettings = $this->model_setting_setting->getSetting('module_tawkto', $store_id);
 
-		if (isset($currentSettings['module_tawkto_widget']['widget_config_' . $id])) {
-			$settings = $currentSettings['module_tawkto_widget']['widget_config_' . $id];
+		if (isset($currentSettings['module_tawkto_widget']['widget_config_' . $store_id])) {
+			$settings = $currentSettings['module_tawkto_widget']['widget_config_' . $store_id];
 
 			return array(
 				'pageId'   => $settings['page_id'],
@@ -183,33 +183,19 @@ class Tawkto extends Controller
 			die();
 		}
 
-		$fail = false;
-
-		$id = isset($_POST['id']) ? intval($_POST['id']) : null;
-		if (is_null($id)) {
-			$fail = true;
-		}
-
-		if (!isset($_POST['pageId']) || !isset($_POST['widgetId'])) {
-			$fail = true;
-		}
+		$store_id = intval($_POST['store']);
 		$page_id = $this->db->escape($_POST['pageId']);
 		$widget_id = $this->db->escape($_POST['widgetId']);
 
-		if ($fail) {
-			echo json_encode(array('success' => false));
-			die();
-		}
-
-		$currentSettings = $this->model_setting_setting->getSetting('module_tawkto', $_POST['store']);
+		$currentSettings = $this->model_setting_setting->getSetting('module_tawkto', $store_id);
 		$currentSettings['module_tawkto_widget'] = isset($currentSettings['module_tawkto_widget']) ? $currentSettings['module_tawkto_widget'] : array();
-		$currentSettings['module_tawkto_widget']['widget_config_' . $id] = array(
+		$currentSettings['module_tawkto_widget']['widget_config_' . $store_id] = array(
 			'page_id' => $page_id,
 			'widget_id' => $widget_id,
 			'user_id' => $this->session->data['user_id']
 		);
 
-		$this->model_setting_setting->editSetting('module_tawkto', $currentSettings, $_POST['store']);
+		$this->model_setting_setting->editSetting('module_tawkto', $currentSettings, $store_id);
 
 		echo json_encode(array('success' => true));
 		die();
@@ -222,16 +208,16 @@ class Tawkto extends Controller
 	{
 		header('Content-Type: application/json');
 
-		$id = isset($_POST['id']) ? intval($_POST['id']) : null;
-		if (is_null($id) || !$this->checkPermission()) {
+		$store_id = isset($_POST['store']) ? intval($_POST['store']) : null;
+		if (is_null($store_id) || !$this->checkPermission()) {
 			echo json_encode(array('success' => false));
 			die();
 		}
 
 		$currentSettings = $this->model_setting_setting->getSetting('module_tawkto');
-		unset($currentSettings['module_tawkto_widget']['widget_config_' . $id]);
+		unset($currentSettings['module_tawkto_widget']['widget_config_' . $store_id]);
 
-		$this->model_setting_setting->editSetting('module_tawkto', $currentSettings, $_POST['id']);
+		$this->model_setting_setting->editSetting('module_tawkto', $currentSettings, $store_id);
 
 		echo json_encode(array('success' => true));
 		die();
@@ -244,13 +230,13 @@ class Tawkto extends Controller
 	{
 		header('Content-Type: application/json');
 
-		$id = isset($_POST['id']) ? intval($_POST['id']) : null;
-		if (is_null($id) || !$this->checkPermission()) {
+		$store_id = isset($_POST['store']) ? intval($_POST['store']) : null;
+		if (is_null($store_id) || !$this->checkPermission()) {
 			echo json_encode(array('success' => false));
 			die();
 		}
 
-		$data  = $this->getCurrentSettingsFor($id);
+		$data  = $this->getCurrentSettingsFor($store_id);
 		if (!isset($data['pageId']) || !isset($data['widgetId'])) {
 			echo json_encode(array('success' => false));
 			die();

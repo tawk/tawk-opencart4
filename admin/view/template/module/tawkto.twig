@@ -128,7 +128,7 @@
 
 	function changeStore(id) {
 		jQuery.post('{{url.change_store_url}}', {
-			id: id,
+			store: id,
 		}, function (r) {
 			if (r.success) {
 				jQuery('input[name="page_id"]').val(r.pageId);
@@ -152,21 +152,17 @@
 	}
 
 	function setTawkWidget(e) {
-		var store_layout = e.data.id;
 		jQuery.post('{{url.set_widget_url}}', {
 			pageId: e.data.pageId,
 			widgetId: e.data.widgetId,
-			id: e.data.id,
-			store: parseInt(store_layout),
-			store_layout: e.data.id
+			store: e.data.id,
 		}, function (r) {
 			if (r.success) {
 				e.source.postMessage({ action: 'setDone' }, baseUrl);
 
 				jQuery('input[name="page_id"]').val(e.data.pageId);
 				jQuery('input[name="widget_id"]').val(e.data.widgetId);
-				var newval = parseInt(store_layout);
-				jQuery('input[name="store_id"]').val(newval);
+				jQuery('input[name="store_id"]').val(e.data.id);
 			} else {
 				e.source.postMessage({ action: 'setFail' }, baseUrl);
 			}
@@ -174,11 +170,9 @@
 	}
 
 	function removeTawkWidget(e) {
-		var store_layout = e.data.id;
 		jQuery.post('{{url.remove_widget_url}}', {
 			id: e.data.id,
-			store: parseInt(store_layout),
-			store_layout: e.data.id,
+			store: e.data.id,
 		}, function (r) {
 			if (r.success) {
 				e.source.postMessage({ action: 'removeDone' }, baseUrl);
