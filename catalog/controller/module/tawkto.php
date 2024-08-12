@@ -128,24 +128,6 @@ class Tawkto extends Controller
 	}
 
 	/**
-	 * Get layout id
-	 *
-	 * @return string
-	 */
-	private function getLayoutId()
-	{
-		if (isset($this->request->get['route'])) {
-			$route = $this->request->get['route'];
-		} else {
-			$route = 'common/home';
-		}
-
-		$this->load->model('design/layout');
-
-		return $this->model_design_layout->getLayout($route);
-	}
-
-	/**
 	 * Pattern matching
 	 * TODO: add UrlPatternMatcher
 	 *
