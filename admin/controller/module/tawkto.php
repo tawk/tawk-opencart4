@@ -25,32 +25,22 @@ class Tawkto extends Controller
 		$this->load->model('setting/setting');
 		$this->load->model('setting/store');
 
-        $data['breadcrumbs'] = array();
-        $data['breadcrumbs'][] = array(
-                'text' => $this->language->get('text_home'),
-                'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'], 'SSL'),
-            );
+		$data['breadcrumbs'] = array();
+		$data['breadcrumbs'][] = array(
+			'text' => $this->language->get('text_home'),
+			'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'], 'SSL'),
+		);
 
-        $data['breadcrumbs'][] = array(
-                'text' => $this->language->get('text_extension'),
-                'href' => $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'], 'SSL'),
-            );
+		$data['breadcrumbs'][] = array(
+			'text' => $this->language->get('text_extension'),
+			'href' => $this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'], 'SSL'),
+		);
 
-        $data['breadcrumbs'][] = array(
-                'text' => $this->language->get('heading_title'),
-                'href' => $this->url->link('extension/module/tawkto', 'user_token=' . $this->session->data['user_token'], 'SSL'),
-            );
+		$data['breadcrumbs'][] = array(
+			'text' => $this->language->get('heading_title'),
+			'href' => $this->url->link('extension/module/tawkto', 'user_token=' . $this->session->data['user_token'], 'SSL'),
+		);
 
-		// get current store and load tawk.to options
-		$store_id = 0;
-		$stores = $this->model_setting_store->getStores();
-		if (!empty($stores)) {
-			foreach ($stores as $store) {
-				if ($this->config->get('config_url') == $store['url']) {
-					$store_id = intval($store['store_id']);
-				}
-			}
-		}
 		$data['base_url']   = $this->getBaseUrl();
 		$data['iframe_url'] = $this->getIframeUrl();
 		$data['hierarchy']  = $this->getStoreHierarchy();
@@ -58,9 +48,6 @@ class Tawkto extends Controller
 			'set_widget_url' => $this->url->link('extension/tawkto/module/tawkto.setwidget', '', 'SSL') . '&user_token=' . $this->session->data['user_token'],
 			'remove_widget_url' => $this->url->link('extension/tawkto/module/tawkto.removewidget', '', 'SSL') . '&user_token=' . $this->session->data['user_token'],
 		);
-
-		$data['widget_config']  = $this->getCurrentSettingsFor($store_id);
-		$data['store_id']  = $store_id;
 
 		$data['same_user'] = true;
 		if (isset($data['widget_config']['user_id'])) {
@@ -126,27 +113,21 @@ class Tawkto extends Controller
 	}
 
 	/**
-	 * Module supports multistore structure, each store and
-	 * its languages, layouts can have different widgets
+	 * Module supports multistore structure, each store can have different
+	 * widgets
 	 *
 	 * @return Array
 	 */
 	private function getStoreHierarchy()
 	{
 		$stores = $this->model_setting_store->getStores();
-		// $this->layouts = (object) $this->model_design_layout->getLayouts();
-		// $this->languages = (object) $this->model_localisation_language->getLanguages();
 
 		$hierarchy = array();
 
-		// we need to empty childs as these prevent us from monitoring user
-		// and user's custom attributes as they navigate the store
-		// (incoming feature, e.g. setting diff. widget per template)
 		$hierarchy[] = array(
 			'id'      => '0',
 			'name'    => 'Default store',
 			'current' => $this->getCurrentSettingsFor('0'),
-			'childs'  => array()
 		);
 
 		foreach ($stores as $store) {
@@ -154,7 +135,6 @@ class Tawkto extends Controller
 				'id'      => $store['store_id'],
 				'name'    => $store['name'],
 				'current' => $this->getCurrentSettingsFor($store['store_id']),
-				'childs'  => array()
 			);
 		}
 

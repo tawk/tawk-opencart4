@@ -50,11 +50,6 @@
 				</div>
 
 				<iframe id="tawkIframe" src=""></iframe>
-				<input type="hidden" class="hidden widget_vars" name="page_id"
-					value="{{ (widget_config.pageId is null)?0:widget_config.pageId}}">
-				<input type="hidden" class="hidden widget_vars" name="widget_id"
-					value="{{ (widget_config.widgetId is null)?0:widget_config.widgetId}}">
-				<input type="hidden" class="hidden widget_vars" name="store_id" value="{{store_id}}">
 			</div>
 		</div>
 	</div>
@@ -142,9 +137,6 @@
 			if (r.success) {
 				e.source.postMessage({ action: 'setDone' }, baseUrl);
 
-				jQuery('input[name="page_id"]').val(e.data.pageId);
-				jQuery('input[name="widget_id"]').val(e.data.widgetId);
-				jQuery('input[name="store_id"]').val(e.data.id);
 				// Update saved widget settings
 				for (store of storeHierarchy) {
 					if (store.id === store_id) {
@@ -166,7 +158,6 @@
 			if (r.success) {
 				e.source.postMessage({ action: 'removeDone' }, baseUrl);
 
-				jQuery('.widget_vars').val();
 				for (store of storeHierarchy) {
 					if (store.id === store_id) {
 						store.current = {};
