@@ -57,7 +57,6 @@ class Tawkto extends Controller
 		$data['url'] = array(
 			'set_widget_url' => $this->url->link('extension/tawkto/module/tawkto.setwidget', '', 'SSL') . '&user_token=' . $this->session->data['user_token'],
 			'remove_widget_url' => $this->url->link('extension/tawkto/module/tawkto.removewidget', '', 'SSL') . '&user_token=' . $this->session->data['user_token'],
-			'change_store_url' => $this->url->link('extension/tawkto/module/tawkto.changestore', '', 'SSL') . '&user_token=' . $this->session->data['user_token']
 		);
 
 		$data['widget_config']  = $this->getCurrentSettingsFor($store_id);
@@ -112,9 +111,8 @@ class Tawkto extends Controller
 	private function getIframeUrl(): string
 	{
 		return $this->getBaseUrl()
-			. '/generic/widgets/'
-			. '?selectType=singleIdSelect'
-			. '&selectText=Store';
+			. '/generic/widgets'
+			. '?selectText=Store';
 	}
 
 	/**
@@ -213,7 +211,13 @@ class Tawkto extends Controller
 
 		$this->model_setting_setting->editSetting('module_tawkto', $currentSettings, $store_id);
 
-		echo json_encode(array('success' => true));
+		$data['success'] = true;
+		$data['current'] = array(
+			'pageId' => $page_id,
+			'widgetId' => $widget_id
+		);
+
+		echo json_encode($data);
 		die();
 	}
 
@@ -236,31 +240,6 @@ class Tawkto extends Controller
 		$this->model_setting_setting->editSetting('module_tawkto', $currentSettings, $store_id);
 
 		echo json_encode(array('success' => true));
-		die();
-	}
-
-	/**
-	 * Endpoint for loading config on store change
-	 */
-	public function changestore()
-	{
-		header('Content-Type: application/json');
-
-		$store_id = isset($_POST['store']) ? intval($_POST['store']) : null;
-		if (is_null($store_id) || !$this->checkPermission()) {
-			echo json_encode(array('success' => false));
-			die();
-		}
-
-		$data  = $this->getCurrentSettingsFor($store_id);
-		if (!isset($data['pageId']) || !isset($data['widgetId'])) {
-			echo json_encode(array('success' => false));
-			die();
-		}
-
-		$data['success'] = true;
-
-		echo json_encode($data);
 		die();
 	}
 

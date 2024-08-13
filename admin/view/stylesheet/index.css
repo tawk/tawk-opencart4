@@ -1,6 +1,7 @@
 html {
-	font-size: unset;
+	font-size: unset !important;
 }
+
 #widget_already_set {
 	width: 100%;
 	color: #3c763d;
@@ -26,4 +27,37 @@ html {
 	background: #fff;
 	border-radius: 10px;
 	display: none;
+}
+
+.storeids:focus {
+	box-shadow:
+		0 1px 1px rgba(0, 0, 0, 0.075) inset,
+		0 0 8px rgba(102, 175, 233, 0.6);
+	border-color: #66afe9;
+	outline: 0 none;
+}
+
+.storeids {
+	width: 350px;
+	background-color: #fff;
+	background-image: none;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset;
+	color: #555;
+	font-size: 14px;
+	height: 34px;
+	line-height: 1.42857;
+	padding: 6px 12px;
+	margin-bottom: 10px;
+	transition:
+		border-color 0.15s ease-in-out 0s,
+		box-shadow 0.15s ease-in-out 0s;
+}
+
+.storeids-label {
+	display: inline-block;
+	font-size: 15px;
+	font-weight: bold;
+	width: 200px;
 }

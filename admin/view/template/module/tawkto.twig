@@ -32,6 +32,13 @@
 				<h1><img src="../extension/tawkto/admin/view/image/module/tawky.png" alt="" /> {{ heading_title }}</h1>
 			</div>
 
+			<label for="store_id" class="storeids-label">Select Store</label>
+			<select name="store_id" class="storeids">
+				{% for store in hierarchy %}
+				<option value="{{ store.id }}">{{ store.name }}</option>
+				{% endfor %}
+			</select>
+
 			<div class="box">
 				{% if same_user == false %}
 				<div id="widget_already_set" class="alert alert-warning">Notice: Widget already set by other user</div>
@@ -54,16 +61,45 @@
 </div>
 <script>
 	var currentHost = window.location.protocol + '//' + window.location.host,
-		url = '{{ iframe_url }}&pltf=opencart&pltfv=3&parentDomain=' + currentHost,
 		baseUrl = '{{ base_url }}',
 		storeHierarchy = {{ hierarchy | json_encode() }};
 
-	jQuery('#tawkIframe').attr('src', url);
 	jQuery('#tawkIframe').on('load', function () {
-		$('#loader').hide();
-		$(this).show();
+		jQuery('#loader').hide();
+		jQuery(this).show();
 	});
-	var iframe = jQuery('#tawk_widget_customization')[0];
+
+	// Reload iframe on store change
+	jQuery('select[name="store_id"]').on('change', function () {
+		displayWidget(this.value);
+	});
+
+	// Loads iframe with saved widget settings
+	function displayWidget(store_id = '0') {
+		$('#tawkIframe').hide();
+		$('#loader').show();
+
+		var src = baseUrl + '/generic/widgets?';
+
+		for (store of storeHierarchy) {
+			if (store.id !== store_id) {
+				continue;
+			}
+
+			if (store.current.widgetId) {
+				src = src + '&currentWidgetId=' + store.current.widgetId;
+			}
+			if (store.current.pageId) {
+				src = src + '&currentPageId=' + store.current.pageId;
+			}
+		}
+		src = src + '&pltf=opencart&pltfv=3&parentDomain=' + currentHost;
+
+		jQuery('#tawkIframe').attr('src', src);
+	}
+
+	// Init iframe
+	displayWidget();
 
 	window.addEventListener('message', function (e) {
 
@@ -76,31 +112,11 @@
 				removeTawkWidget(e);
 			}
 
-			if (e.data.action === 'getIdValues') {
-				e.source.postMessage({ action: 'idValues', values: storeHierarchy }, baseUrl);
-			}
-
 			if (e.data.action === 'reloadHeight') {
 				reloadIframeHeight(e.data.height);
 			}
-
-			if (e.data.action === 'changeStore') {
-				changeStore(e.data.id);
-			}
 		}
 	});
-
-	function changeStore(id) {
-		jQuery.post('{{url.change_store_url}}', {
-			store: id,
-		}, function (r) {
-			if (r.success) {
-				jQuery('input[name="page_id"]').val(r.pageId);
-				jQuery('input[name="widget_id"]').val(r.widgetId);
-				jQuery('input[name="store_id"]').val(id);
-			}
-		});
-	}
 
 	function reloadIframeHeight(height) {
 		if (!height) {
@@ -115,11 +131,13 @@
 		iframe.height(height);
 	}
 
+	// Sets widget settings for selected store
 	function setTawkWidget(e) {
+		var store_id = jQuery('select[name="store_id"]').val();
 		jQuery.post('{{url.set_widget_url}}', {
 			pageId: e.data.pageId,
 			widgetId: e.data.widgetId,
-			store: e.data.id,
+			store: store_id,
 		}, function (r) {
 			if (r.success) {
 				e.source.postMessage({ action: 'setDone' }, baseUrl);
@@ -127,21 +145,33 @@
 				jQuery('input[name="page_id"]').val(e.data.pageId);
 				jQuery('input[name="widget_id"]').val(e.data.widgetId);
 				jQuery('input[name="store_id"]').val(e.data.id);
+				// Update saved widget settings
+				for (store of storeHierarchy) {
+					if (store.id === store_id) {
+						store.current = r.current;
+					}
+				}
 			} else {
 				e.source.postMessage({ action: 'setFail' }, baseUrl);
 			}
 		});
 	}
 
+	// Remove widget settings for selected store
 	function removeTawkWidget(e) {
+		var store_id = jQuery('select[name="store_id"]').val();
 		jQuery.post('{{url.remove_widget_url}}', {
-			id: e.data.id,
-			store: e.data.id,
+			store: store_id,
 		}, function (r) {
 			if (r.success) {
 				e.source.postMessage({ action: 'removeDone' }, baseUrl);
 
 				jQuery('.widget_vars').val();
+				for (store of storeHierarchy) {
+					if (store.id === store_id) {
+						store.current = {};
+					}
+				}
 			} else {
 				e.source.postMessage({ action: 'removeFail' }, baseUrl);
 			}
