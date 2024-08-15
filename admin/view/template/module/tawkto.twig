@@ -140,7 +140,10 @@
 				// Update saved widget settings
 				for (store of storeHierarchy) {
 					if (store.id === store_id) {
-						store.current = r.current;
+						store.current = {
+							pageId: e.data.pageId,
+							widgetId: e.data.widgetId
+						}
 					}
 				}
 			} else {

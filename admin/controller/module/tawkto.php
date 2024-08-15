@@ -191,13 +191,7 @@ class Tawkto extends Controller
 
 		$this->model_setting_setting->editSetting('module_tawkto', $currentSettings, $store_id);
 
-		$data['success'] = true;
-		$data['current'] = array(
-			'pageId' => $page_id,
-			'widgetId' => $widget_id
-		);
-
-		echo json_encode($data);
+		echo json_encode(array('success' => true));
 		die();
 	}
 
