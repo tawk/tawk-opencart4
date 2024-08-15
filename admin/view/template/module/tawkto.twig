@@ -64,21 +64,24 @@
 								every page</label>
 							<div class="col-xs-6 control-label ">
 								<input type="checkbox" class="control-label col-xs-6" name="always_display"
-									id="always_display" value="1" {{(display_opts.always_display)?'checked':''}} />
+									id="always_display" value="1"
+									{{(hierarchy[0].display_opts.always_display)?'checked':''}} />
 							</div>
 						</div>
 						<div class="form-group col-lg-12 row">
 							<label for="show_onfrontpage" class="col-xs-6 control-label">Show on frontpage</label>
 							<div class="col-xs-6 control-label ">
 								<input type="checkbox" class="control-label col-xs-6" name="show_onfrontpage"
-									id="show_onfrontpage" value="1" {{(display_opts.show_onfrontpage)?'checked':''}} />
+									id="show_onfrontpage" value="1"
+									{{(hierarchy[0].display_opts.show_onfrontpage)?'checked':''}} />
 							</div>
 						</div>
 						<div class="form-group col-lg-12 row">
 							<label for="show_oncategory" class="col-xs-6 control-label">Show on category pages</label>
 							<div class="col-xs-6 control-label ">
 								<input type="checkbox" class="control-label col-xs-6" name="show_oncategory"
-									id="show_oncategory" value="1" {{(display_opts.show_oncategory)?'checked':''}} />
+									id="show_oncategory" value="1"
+									{{(hierarchy[0].display_opts.show_oncategory)?'checked':''}} />
 							</div>
 						</div>
 						<div class="form-group col-lg-12" style="margin-bottom: 1rem;">
@@ -108,9 +111,19 @@
 		jQuery(this).show();
 	});
 
-	// Reload iframe on store change
+	// Reload iframe and options on store change
 	jQuery('select[name="store_id"]').on('change', function () {
 		displayWidget(this.value);
+
+		for (store of storeHierarchy) {
+			if (store.id !== this.value) {
+				continue;
+			}
+
+			jQuery('input[name="always_display"]').prop('checked', store.display_opts.always_display);
+			jQuery('input[name="show_onfrontpage"]').prop('checked', store.display_opts.show_onfrontpage);
+			jQuery('input[name="show_oncategory"]').prop('checked', store.display_opts.show_oncategory);
+		}
 	});
 
 	// Loads iframe with saved widget settings
@@ -236,15 +249,34 @@
 
 		// process the form
 		jQuery('#module_form').submit(function (event) {
+			var store_id = jQuery('select[name="store_id"]').val();
+			var form = jQuery(this);
+
 			$path = '{{url.set_options_url}}';
 			jQuery.post($path, {
-				action: 'set_visibility',
-				ajax: true,
-				store: parseInt(jQuery('input[name="store_id"]').val()),
-				options: jQuery(this).serialize(),
+				store: store_id,
+				options: form.serialize(),
 			}, function (r) {
 				if (r.success) {
 					$('#optionsSuccessMessage').toggle().delay(3000).fadeOut();
+
+					// Update saved options
+					var fields = form.serializeArray();
+					for (store of storeHierarchy) {
+						if (store.id !== store_id) {
+							continue;
+						}
+
+						store.display_opts = {
+							'always_display': false,
+							'show_onfrontpage': false,
+							'show_oncategory': false,
+						};
+
+						for (field of fields) {
+							store.display_opts[field.name] = field.value === '1';
+						}
+					}
 				}
 			});
 

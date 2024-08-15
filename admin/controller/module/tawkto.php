@@ -50,10 +50,6 @@ class Tawkto extends Controller
 			'set_options_url' => $this->url->link('extension/tawkto/module/tawkto.setoptions', '', 'SSL') . '&user_token=' . $this->session->data['user_token']
 		);
 
-		$data['widget_config']  = $this->getCurrentSettingsFor($store_id);
-		$data['store_id']  = $store_id;
-		$data['display_opts']  = $this->getDisplayOpts($store_id);
-
 		$data['same_user'] = true;
 		if (isset($data['widget_config']['user_id'])) {
 			$data['same_user']  = ($data['widget_config']['user_id'] == $this->session->data['user_id']);
@@ -133,6 +129,7 @@ class Tawkto extends Controller
 			'id'      => '0',
 			'name'    => 'Default store',
 			'current' => $this->getCurrentSettingsFor('0'),
+			'display_opts' => $this->getDisplayOpts('0'),
 		);
 
 		foreach ($stores as $store) {
@@ -140,6 +137,7 @@ class Tawkto extends Controller
 				'id'      => $store['store_id'],
 				'name'    => $store['name'],
 				'current' => $this->getCurrentSettingsFor($store['store_id']),
+				'display_opts' => $this->getDisplayOpts($store['store_id']),
 			);
 		}
 
@@ -229,6 +227,12 @@ class Tawkto extends Controller
 	{
 		header('Content-Type: application/json');
 
+		$store_id = isset($_POST['store']) ? intval($_POST['store']) : null;
+		if (is_null($store_id)) {
+			echo json_encode(array('success' => false));
+			die();
+		}
+
 		$jsonOpts = array(
 			'always_display' => false,
 			'show_onfrontpage' => false,
@@ -249,12 +253,6 @@ class Tawkto extends Controller
 						break;
 				}
 			}
-		}
-
-		$store_id = isset($_POST['store']) ? intval($_POST['store']) : null;
-		if (is_null($store_id)) {
-			echo json_encode(array('success' => false));
-			die();
 		}
 
 		$current_settings = $this->model_setting_setting->getSetting('module_tawkto', $store_id);
