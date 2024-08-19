@@ -50,10 +50,7 @@ class Tawkto extends Controller
 			'remove_widget_url' => $this->url->link('extension/tawkto/module/tawkto.removewidget', '', 'SSL') . '&user_token=' . $this->session->data['user_token'],
 		);
 
-		$data['same_user'] = true;
-		if (isset($data['widget_config']['user_id'])) {
-			$data['same_user']  = ($data['widget_config']['user_id'] == $this->session->data['user_id']);
-		}
+		$data['current_user'] = $this->session->data['user_id'];
 
 		$data['header'] = $this->load->controller('common/header');
 		$data['column_left'] = $this->load->controller('common/column_left');
