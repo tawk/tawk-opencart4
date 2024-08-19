@@ -243,13 +243,13 @@
 				continue;
 			}
 
-			if (store.current.widgetId) {
-				src = src + '&currentWidgetId=' + store.current.widgetId;
+			if (store.current.widget_id) {
+				src = src + '&currentWidgetId=' + store.current.widget_id;
 			}
-			if (store.current.pageId) {
-				src = src + '&currentPageId=' + store.current.pageId;
+			if (store.current.page_id) {
+				src = src + '&currentPageId=' + store.current.page_id;
 			}
-			if (store.current.userId && store.current.userId !== '{{ current_user }}') {
+			if (store.current.user_id && store.current.user_id !== '{{ current_user }}') {
 				jQuery('#widget_already_set').show();
 			}
 		}

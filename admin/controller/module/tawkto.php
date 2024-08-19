@@ -319,16 +319,10 @@ class Tawkto extends Controller
 	 */
 	public function getWidgetOpts($settings) {
 		if (isset($settings['module_tawkto_widget']['widget_config'])) {
-			$settings = $settings['module_tawkto_widget']['widget_config'];
-
-			return array(
-				'pageId'   => $settings['page_id'],
-				'widgetId' => $settings['widget_id'],
-				'userId'   => $settings['user_id']
-			);
-		} else {
-			return array();
+			return $settings['module_tawkto_widget']['widget_config'];
 		}
+
+		return array();
 	}
 
 	/**
