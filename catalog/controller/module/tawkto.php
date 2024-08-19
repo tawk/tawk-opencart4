@@ -77,11 +77,11 @@ class Tawkto extends Controller
 		}
 		$current_page = $this->config->get('config_url') . $request_uri;
 
+		$show = false;
 		if (false == $visibility['always_display']) {
 
 			// custom pages
 			$show_pages = $visibility['show_oncustom'];
-			$show = false;
 
 			if ($this->matchPatterns($current_page, $show_pages)) {
 				$show = true;
@@ -89,40 +89,33 @@ class Tawkto extends Controller
 
 			// category page
 			if (isset($this->request->get['route']) && stripos($this->request->get['route'], 'category') !== false) {
-				if (false != $visibility['show_oncategory']) {
+				if ($visibility['show_oncategory']) {
 					$show = true;
 				}
 			}
 
 			// home
-			$is_home = false;
 			if (
 				!isset($this->request->get['route'])
 				|| (isset($this->request->get['route']) && $this->request->get['route'] == 'common/home')
 			) {
-				$is_home = true;
-			}
-
-			if ($is_home) {
-				if (false != $visibility['show_onfrontpage']) {
+				if ($visibility['show_onfrontpage']) {
 					$show = true;
 				}
 			}
 
-			if (!$show) {
-				return;
-			}
 		} else {
 			$show = true;
+
 			$hide_pages = $visibility['hide_oncustom'];
 
 			if ($this->matchPatterns($current_page, $hide_pages)) {
 				$show = false;
 			}
+		}
 
-			if (!$show) {
-				return;
-			}
+		if (!$show) {
+			return;
 		}
 
 		return $settings['module_tawkto_widget']['widget_config'];
