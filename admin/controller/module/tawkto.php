@@ -133,19 +133,23 @@ class Tawkto extends Controller
 
 		$hierarchy = array();
 
+		$currentSettings = $this->getCurrentSettingsFor('0');
+
 		$hierarchy[] = array(
 			'id'      => '0',
 			'name'    => 'Default store',
-			'current' => $this->getCurrentSettingsFor('0'),
-			'display_opts' => $this->getDisplayOpts('0'),
+			'current' => $this->getWidgetOpts($currentSettings),
+			'display_opts' => $this->getDisplayOpts($currentSettings),
 		);
 
 		foreach ($stores as $store) {
+			$currentSettings = $this->getCurrentSettingsFor($store['store_id']);
+
 			$hierarchy[] = array(
 				'id'      => $store['store_id'],
 				'name'    => $store['name'],
-				'current' => $this->getCurrentSettingsFor($store['store_id']),
-				'display_opts' => $this->getDisplayOpts($store['store_id']),
+				'current' => $this->getWidgetOpts($currentSettings),
+				'display_opts' => $this->getDisplayOpts($currentSettings),
 			);
 		}
 
@@ -153,8 +157,7 @@ class Tawkto extends Controller
 	}
 
 	/**
-	 * Will retrieve widget settings for supplied item in hierarchy
-	 * It can be store, store + language or store+language+layout
+	 * Retrieves all tawkto settings for store
 	 *
 	 * @param  Int $id
 	 * @return Array
@@ -162,19 +165,7 @@ class Tawkto extends Controller
 	private function getCurrentSettingsFor($store_id)
 	{
 
-		$currentSettings = $this->model_setting_setting->getSetting('module_tawkto', $store_id);
-
-		if (isset($currentSettings['module_tawkto_widget']['widget_config'])) {
-			$settings = $currentSettings['module_tawkto_widget']['widget_config'];
-
-			return array(
-				'pageId'   => $settings['page_id'],
-				'widgetId' => $settings['widget_id'],
-				'userId'   => $settings['user_id']
-			);
-		} else {
-			return array();
-		}
+		return $this->model_setting_setting->getSetting('module_tawkto', $store_id);
 	}
 
 	/**
@@ -193,7 +184,7 @@ class Tawkto extends Controller
 		$page_id = $this->db->escape($_POST['pageId']);
 		$widget_id = $this->db->escape($_POST['widgetId']);
 
-		$currentSettings = $this->model_setting_setting->getSetting('module_tawkto', $store_id);
+		$currentSettings = $this->getCurrentSettingsFor($store_id);
 		$currentSettings['module_tawkto_widget'] = isset($currentSettings['module_tawkto_widget']) ? $currentSettings['module_tawkto_widget'] : array();
 		$currentSettings['module_tawkto_widget']['widget_config'] = array(
 			'page_id' => $page_id,
@@ -220,7 +211,7 @@ class Tawkto extends Controller
 			die();
 		}
 
-		$currentSettings = $this->model_setting_setting->getSetting('module_tawkto');
+		$currentSettings = $this->getCurrentSettingsFor($store_id);
 		unset($currentSettings['module_tawkto_widget']['widget_config']);
 
 		$this->model_setting_setting->editSetting('module_tawkto', $currentSettings, $store_id);
@@ -277,9 +268,9 @@ class Tawkto extends Controller
 			}
 		}
 
-		$current_settings = $this->model_setting_setting->getSetting('module_tawkto', $store_id);
-		$current_settings['module_tawkto_visibility'] = $jsonOpts;
-		$this->model_setting_setting->editSetting('module_tawkto', $current_settings, $store_id);
+		$currentSettings = $this->getCurrentSettingsFor($store_id);
+		$currentSettings['module_tawkto_visibility'] = $jsonOpts;
+		$this->model_setting_setting->editSetting('module_tawkto', $currentSettings, $store_id);
 
 		echo json_encode(array('success' => true));
 		die();
@@ -322,18 +313,35 @@ class Tawkto extends Controller
 	}
 
 	/**
-	 * Get display options for store
+	 * Get widget options from setting
 	 *
 	 * @return Array
 	 */
-	public function getDisplayOpts($store_id = 0)
-	{
-		$current_settings = $this->model_setting_setting->getSetting('module_tawkto', $store_id);
+	public function getWidgetOpts($settings) {
+		if (isset($settings['module_tawkto_widget']['widget_config'])) {
+			$settings = $settings['module_tawkto_widget']['widget_config'];
 
+			return array(
+				'pageId'   => $settings['page_id'],
+				'widgetId' => $settings['widget_id'],
+				'userId'   => $settings['user_id']
+			);
+		} else {
+			return array();
+		}
+	}
+
+	/**
+	 * Get display options from setting
+	 *
+	 * @return Array
+	 */
+	public function getDisplayOpts($settings)
+	{
 		$options = $this->config->get('tawkto_visibility');
 
-		if (isset($current_settings['module_tawkto_visibility'])) {
-			$options = $current_settings['module_tawkto_visibility'];
+		if (isset($settings['module_tawkto_visibility'])) {
+			$options = $settings['module_tawkto_visibility'];
 		}
 
 		return $options;
