@@ -27,6 +27,7 @@ class Tawkto extends Controller
 
 		$data['breadcrumbs'] = array();
 		$data['breadcrumbs'][] = array(
+			// 'text_home' loaded by default from opencart (upload/admin/language/en-gb/default.php)
 			'text' => $this->language->get('text_home'),
 			'href' => $this->url->link('common/dashboard', 'user_token=' . $this->session->data['user_token'], 'SSL'),
 		);
@@ -50,10 +51,7 @@ class Tawkto extends Controller
 			'set_options_url' => $this->url->link('extension/tawkto/module/tawkto.setoptions', '', 'SSL') . '&user_token=' . $this->session->data['user_token']
 		);
 
-		$data['same_user'] = true;
-		if (isset($data['widget_config']['user_id'])) {
-			$data['same_user']  = ($data['widget_config']['user_id'] == $this->session->data['user_id']);
-		}
+		$data['current_user'] = $this->session->data['user_id'];
 
 		$data['header'] = $this->load->controller('common/header');
 		$data['column_left'] = $this->load->controller('common/column_left');
@@ -161,7 +159,8 @@ class Tawkto extends Controller
 
 			return array(
 				'pageId'   => $settings['page_id'],
-				'widgetId' => $settings['widget_id']
+				'widgetId' => $settings['widget_id'],
+				'userId'   => $settings['user_id']
 			);
 		} else {
 			return array();

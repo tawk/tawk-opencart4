@@ -39,10 +39,8 @@
 				{% endfor %}
 			</select>
 
-			<div class="box">
-				{% if same_user == false %}
-				<div id="widget_already_set" class="alert alert-warning">Notice: Widget already set by other user</div>
-				{% endif %}
+			<div id="box">
+				<div id="widget_already_set" class="alert alert-warning" style="display:none">Notice: Widget already set by other user</div>
 			</div>
 			<div class="content" style="position: relative;">
 				<div id="loader">
@@ -128,8 +126,9 @@
 
 	// Loads iframe with saved widget settings
 	function displayWidget(store_id = '0') {
-		$('#tawkIframe').hide();
-		$('#loader').show();
+		jQuery('#widget_already_set').hide();
+		jQuery('#tawkIframe').hide();
+		jQuery('#loader').show();
 
 		var src = baseUrl + '/generic/widgets?';
 
@@ -144,8 +143,11 @@
 			if (store.current.pageId) {
 				src = src + '&currentPageId=' + store.current.pageId;
 			}
+			if (store.current.userId && store.current.userId !== '{{ current_user }}') {
+				jQuery('#widget_already_set').show();
+			}
 		}
-		src = src + '&pltf=opencart&pltfv=3&parentDomain=' + currentHost;
+		src = src + '&pltf=opencart&pltfv=4&parentDomain=' + currentHost;
 
 		jQuery('#tawkIframe').attr('src', src);
 	}
