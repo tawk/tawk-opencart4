@@ -240,9 +240,8 @@ class Tawkto extends Controller
 			'hide_oncustom' => array(),
 		);
 
-		if (isset($_REQUEST['options']) && !empty($_REQUEST['options'])) {
-			$options = str_ireplace('amp;', '', $_REQUEST['options']);
-			$options = explode('&', $options);
+		if (isset($_POST['options']) && !empty($_POST['options'])) {
+			$options = explode('&', $_POST['options']);
 
 			foreach ($options as $post) {
 				list($key, $value) = explode('=', $post);
