@@ -69,13 +69,13 @@
 						<div class="form-group col-lg-12 row">
 							<label for="hide_oncustom" class="col-sm-6 control-label">Except on pages:</label>
 							<div class="col-sm-6 control-label">
-								{% if display_opts.hide_oncustom is empty %}
+								{% if hierarchy[0].display_opts.hide_oncustom is empty %}
 								<textarea class="form-control hide_specific" name="hide_oncustom" id="hide_oncustom"
 									cols="30" rows="10"></textarea>
 								{% else %}
 								<textarea class="form-control hide_specific" name="hide_oncustom" id="hide_oncustom"
 									cols="30"
-									rows="10">{% for page in display_opts.hide_oncustom %}{{page ~ '\r\n'}}{% endfor %}</textarea>
+									rows="10">{% for page in hierarchy[0].display_opts.hide_oncustom %}{{page ~ '\r\n'}}{% endfor %}</textarea>
 								{% endif %}
 								<br>
 								<div class="justify">
@@ -133,13 +133,13 @@
 						<div class="form-group col-lg-12 row">
 							<label for="show_oncustom" class="col-sm-6 control-label">Show on pages:</label>
 							<div class="col-sm-6 control-label">
-								{% if display_opts.show_oncustom is empty %}
+								{% if hierarchy[0].display_opts.show_oncustom is empty %}
 								<textarea class="form-control show_specific" name="show_oncustom" id="show_oncustom"
 									cols="30" rows="10"></textarea>
 								{% else %}
 								<textarea class="form-control show_specific" name="show_oncustom" id="show_oncustom"
 									cols="30"
-									rows="10">{% for page in display_opts.show_oncustom %}{{page ~ '\r\n'}}{% endfor %}</textarea>
+									rows="10">{% for page in hierarchy[0].display_opts.show_oncustom %}{{page ~ '\r\n'}}{% endfor %}</textarea>
 								{% endif %}
 								<br>
 								<div class="justify">
@@ -216,6 +216,17 @@
 			jQuery('input[name="always_display"]').prop('checked', store.display_opts.always_display);
 			jQuery('input[name="show_onfrontpage"]').prop('checked', store.display_opts.show_onfrontpage);
 			jQuery('input[name="show_oncategory"]').prop('checked', store.display_opts.show_oncategory);
+
+			jQuery('textarea[name="show_oncustom"]').val(store.display_opts.show_oncustom.join('\n'));
+			jQuery('textarea[name="hide_oncustom"]').val(store.display_opts.hide_oncustom.join('\n'));
+
+			if (store.display_opts.always_display) {
+				jQuery('.hide_specific').prop('disabled', false);
+				jQuery('.show_specific').prop('disabled', true);
+			} else {
+				jQuery('.hide_specific').prop('disabled', true);
+				jQuery('.show_specific').prop('disabled', false);
+			}
 		}
 	});
 
@@ -368,9 +379,21 @@
 							'always_display': false,
 							'show_onfrontpage': false,
 							'show_oncategory': false,
+							'show_oncustom': [],
+							'hide_oncustom': [],
 						};
 
 						for (field of fields) {
+							if (field.name === 'show_oncustom') {
+								store.display_opts['show_oncustom'] = field.value.replaceAll('\r', '\n').split('\n').filter(Boolean);
+								continue;
+							}
+
+							if (field.name === 'hide_oncustom') {
+								store.display_opts['hide_oncustom'] = field.value.replaceAll('\r', '\n').split('\n').filter(Boolean);
+								continue;
+							}
+
 							store.display_opts[field.name] = field.value === '1';
 						}
 					}
