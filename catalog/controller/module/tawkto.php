@@ -17,6 +17,16 @@ use \Tawk\Modules\UrlPatternMatcher;
 class Tawkto extends Controller
 {
 	/**
+	 * __construct
+	 */
+	public function __construct($registry) {
+		parent::__construct($registry);
+
+		$this->config->addPath(DIR_EXTENSION . 'tawkto/system/config/');
+		$this->config->load('tawkto');
+	}
+
+	/**
 	 * Entry point
 	 */
 	public function index()
@@ -45,88 +55,77 @@ class Tawkto extends Controller
 	 *
 	 * @return object|null
 	 */
-	private function getWidget($plugin_version_in_db)
+	private function getWidget()
 	{
 		$store_id = $this->config->get('config_store_id');
 		$settings = $this->model_setting_setting->getSetting('module_tawkto', $store_id);
 
-		$visibility = false;
+		if (!isset($settings['module_tawkto_widget']['widget_config'])) {
+			return null;
+		}
+
+		$visibility = $this->config->get('tawkto_visibility');
+
 		if (isset($settings['module_tawkto_visibility'])) {
 			$visibility = $settings['module_tawkto_visibility'];
 		}
 
-		$widget = null;
-		if (!isset($settings['module_tawkto_widget'])) {
-			return null;
+		// prepare visibility
+		$request_uri = trim($_SERVER["REQUEST_URI"]);
+		if (stripos($request_uri, '/') === 0) {
+			$request_uri = substr($request_uri, 1);
 		}
-		$settings = $settings['module_tawkto_widget'];
+		$current_page = $this->config->get('config_url') . $request_uri;
 
-		if (isset($settings['widget_config'])) {
-			$widget = $settings['widget_config'];
-		}
+		if (false == $visibility['always_display']) {
 
-		// get visibility options
-		if ($visibility) {
-			$visibility = json_decode($visibility);
+			// custom pages
+			$show_pages = $visibility['show_oncustom'];
+			$show = false;
 
-			// prepare visibility
-			$request_uri = trim($_SERVER["REQUEST_URI"]);
-			if (stripos($request_uri, '/') === 0) {
-				$request_uri = substr($request_uri, 1);
+			if ($this->matchPatterns($current_page, $show_pages)) {
+				$show = true;
 			}
-			$current_page = $this->config->get('config_url') . $request_uri;
-			$current_page = trim($current_page);
 
-			if (false == $visibility->always_display) {
-
-				// custom pages
-				$show_pages = $visibility->show_oncustom;
-				$show = false;
-
-				if ($this->matchPatterns($current_page, $show_pages)) {
+			// category page
+			if (isset($this->request->get['route']) && stripos($this->request->get['route'], 'category') !== false) {
+				if (false != $visibility['show_oncategory']) {
 					$show = true;
 				}
+			}
 
-				// category page
-				if (isset($this->request->get['route']) && stripos($this->request->get['route'], 'category') !== false) {
-					if (false != $visibility->show_oncategory) {
-						$show = true;
-					}
-				}
+			// home
+			$is_home = false;
+			if (
+				!isset($this->request->get['route'])
+				|| (isset($this->request->get['route']) && $this->request->get['route'] == 'common/home')
+			) {
+				$is_home = true;
+			}
 
-				// home
-				$is_home = false;
-				if (
-					!isset($this->request->get['route'])
-					|| (isset($this->request->get['route']) && $this->request->get['route'] == 'common/home')
-				) {
-					$is_home = true;
+			if ($is_home) {
+				if (false != $visibility['show_onfrontpage']) {
+					$show = true;
 				}
+			}
 
-				if ($is_home) {
-					if (false != $visibility->show_onfrontpage) {
-						$show = true;
-					}
-				}
+			if (!$show) {
+				return;
+			}
+		} else {
+			$show = true;
+			$hide_pages = $visibility['hide_oncustom'];
 
-				if (!$show) {
-					return;
-				}
-			} else {
-				$show = true;
-				$hide_pages = $visibility->hide_oncustom;
+			if ($this->matchPatterns($current_page, $hide_pages)) {
+				$show = false;
+			}
 
-				if ($this->matchPatterns($current_page, $hide_pages)) {
-					$show = false;
-				}
-
-				if (!$show) {
-					return;
-				}
+			if (!$show) {
+				return;
 			}
 		}
 
-		return $widget;
+		return $settings['module_tawkto_widget']['widget_config'];
 	}
 
 	/**

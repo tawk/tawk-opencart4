@@ -14,6 +14,16 @@ use \Opencart\System\Engine\Controller;
 class Tawkto extends Controller
 {
 	/**
+	 * __construct
+	 */
+	public function __construct($registry) {
+		parent::__construct($registry);
+
+		$this->config->addPath(DIR_EXTENSION . 'tawkto/system/config/');
+		$this->config->load('tawkto');
+	}
+
+	/**
 	 * Entry point
 	 */
 	public function index(): void
@@ -232,13 +242,8 @@ class Tawkto extends Controller
 			die();
 		}
 
-		$jsonOpts = array(
-			'always_display' => false,
-			'show_onfrontpage' => false,
-			'show_oncategory' => false,
-			'show_oncustom' => array(),
-			'hide_oncustom' => array(),
-		);
+		$jsonOpts = $this->config->get('tawkto_visibility');
+		$jsonOpts['always_display'] = false; // account for absence of checkbox value
 
 		if (isset($_POST['options']) && !empty($_POST['options'])) {
 			$options = explode('&', $_POST['options']);
@@ -262,17 +267,18 @@ class Tawkto extends Controller
 						$jsonOpts[$key] = $non_empty_values;
 						break;
 
+					// serialize() only includes "successful controls"
 					case 'always_display':
 					case 'show_onfrontpage':
 					case 'show_oncategory':
-						$jsonOpts[$key] = $value == 1;
+						$jsonOpts[$key] = true;
 						break;
 				}
 			}
 		}
 
 		$current_settings = $this->model_setting_setting->getSetting('module_tawkto', $store_id);
-		$current_settings['module_tawkto_visibility'] = json_encode($jsonOpts);
+		$current_settings['module_tawkto_visibility'] = $jsonOpts;
 		$this->model_setting_setting->editSetting('module_tawkto', $current_settings, $store_id);
 
 		echo json_encode(array('success' => true));
@@ -324,16 +330,10 @@ class Tawkto extends Controller
 	{
 		$current_settings = $this->model_setting_setting->getSetting('module_tawkto', $store_id);
 
-		$options = array(
-			'always_display' => true,
-			'show_onfrontpage' => false,
-			'show_oncategory' => false,
-			'show_oncustom' => array(),
-			'hide_oncustom' => array(),
-		);
+		$options = $this->config->get('tawkto_visibility');
+
 		if (isset($current_settings['module_tawkto_visibility'])) {
 			$options = $current_settings['module_tawkto_visibility'];
-			$options = json_decode($options, true);
 		}
 
 		return $options;
