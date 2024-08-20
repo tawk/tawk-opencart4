@@ -14,6 +14,16 @@ use \Opencart\System\Engine\Controller;
 class Tawkto extends Controller
 {
 	/**
+	 * __construct
+	 */
+	public function __construct($registry) {
+		parent::__construct($registry);
+
+		$this->config->addPath(DIR_EXTENSION . 'tawkto/system/config/');
+		$this->config->load('tawkto');
+	}
+
+	/**
 	 * Entry point
 	 */
 	public function index(): void
@@ -48,6 +58,7 @@ class Tawkto extends Controller
 		$data['url'] = array(
 			'set_widget_url' => $this->url->link('extension/tawkto/module/tawkto.setwidget', '', 'SSL') . '&user_token=' . $this->session->data['user_token'],
 			'remove_widget_url' => $this->url->link('extension/tawkto/module/tawkto.removewidget', '', 'SSL') . '&user_token=' . $this->session->data['user_token'],
+			'set_options_url' => $this->url->link('extension/tawkto/module/tawkto.setoptions', '', 'SSL') . '&user_token=' . $this->session->data['user_token']
 		);
 
 		$data['current_user'] = $this->session->data['user_id'];
@@ -122,17 +133,23 @@ class Tawkto extends Controller
 
 		$hierarchy = array();
 
+		$currentSettings = $this->getCurrentSettingsFor('0');
+
 		$hierarchy[] = array(
 			'id'      => '0',
 			'name'    => 'Default store',
-			'current' => $this->getCurrentSettingsFor('0'),
+			'current' => $this->getWidgetOpts($currentSettings),
+			'display_opts' => $this->getDisplayOpts($currentSettings),
 		);
 
 		foreach ($stores as $store) {
+			$currentSettings = $this->getCurrentSettingsFor($store['store_id']);
+
 			$hierarchy[] = array(
 				'id'      => $store['store_id'],
 				'name'    => $store['name'],
-				'current' => $this->getCurrentSettingsFor($store['store_id']),
+				'current' => $this->getWidgetOpts($currentSettings),
+				'display_opts' => $this->getDisplayOpts($currentSettings),
 			);
 		}
 
@@ -140,8 +157,7 @@ class Tawkto extends Controller
 	}
 
 	/**
-	 * Will retrieve widget settings for supplied item in hierarchy
-	 * It can be store, store + language or store+language+layout
+	 * Retrieves all tawkto settings for store
 	 *
 	 * @param  Int $id
 	 * @return Array
@@ -149,19 +165,7 @@ class Tawkto extends Controller
 	private function getCurrentSettingsFor($store_id)
 	{
 
-		$currentSettings = $this->model_setting_setting->getSetting('module_tawkto', $store_id);
-
-		if (isset($currentSettings['module_tawkto_widget']['widget_config'])) {
-			$settings = $currentSettings['module_tawkto_widget']['widget_config'];
-
-			return array(
-				'pageId'   => $settings['page_id'],
-				'widgetId' => $settings['widget_id'],
-				'userId'   => $settings['user_id']
-			);
-		} else {
-			return array();
-		}
+		return $this->model_setting_setting->getSetting('module_tawkto', $store_id);
 	}
 
 	/**
@@ -180,7 +184,7 @@ class Tawkto extends Controller
 		$page_id = $this->db->escape($_POST['pageId']);
 		$widget_id = $this->db->escape($_POST['widgetId']);
 
-		$currentSettings = $this->model_setting_setting->getSetting('module_tawkto', $store_id);
+		$currentSettings = $this->getCurrentSettingsFor($store_id);
 		$currentSettings['module_tawkto_widget'] = isset($currentSettings['module_tawkto_widget']) ? $currentSettings['module_tawkto_widget'] : array();
 		$currentSettings['module_tawkto_widget']['widget_config'] = array(
 			'page_id' => $page_id,
@@ -207,9 +211,65 @@ class Tawkto extends Controller
 			die();
 		}
 
-		$currentSettings = $this->model_setting_setting->getSetting('module_tawkto');
+		$currentSettings = $this->getCurrentSettingsFor($store_id);
 		unset($currentSettings['module_tawkto_widget']['widget_config']);
 
+		$this->model_setting_setting->editSetting('module_tawkto', $currentSettings, $store_id);
+
+		echo json_encode(array('success' => true));
+		die();
+	}
+
+	/*
+	 * Endpoint for setting widget options
+	 */
+	public function setoptions()
+	{
+		header('Content-Type: application/json');
+
+		$store_id = isset($_POST['store']) ? intval($_POST['store']) : null;
+		if (is_null($store_id)) {
+			echo json_encode(array('success' => false));
+			die();
+		}
+
+		$jsonOpts = $this->config->get('tawkto_visibility');
+		$jsonOpts['always_display'] = false; // account for absence of checkbox value
+
+		if (isset($_POST['options']) && !empty($_POST['options'])) {
+			$options = explode('&', $_POST['options']);
+
+			foreach ($options as $post) {
+				list($key, $value) = explode('=', $post);
+				switch ($key) {
+					case 'show_oncustom':
+					case 'hide_oncustom':
+						// split by newlines, then remove empty lines
+						$value = urldecode($value);
+						$value = str_ireplace("\r", "\n", $value);
+						$value = explode("\n", $value);
+						$non_empty_values = array();
+						foreach ($value as $str) {
+							$trimmed = trim($str);
+							if ($trimmed !== '') {
+								$non_empty_values[] = $trimmed;
+							}
+						}
+						$jsonOpts[$key] = $non_empty_values;
+						break;
+
+					// serialize() only includes "successful controls"
+					case 'always_display':
+					case 'show_onfrontpage':
+					case 'show_oncategory':
+						$jsonOpts[$key] = true;
+						break;
+				}
+			}
+		}
+
+		$currentSettings = $this->getCurrentSettingsFor($store_id);
+		$currentSettings['module_tawkto_visibility'] = $jsonOpts;
 		$this->model_setting_setting->editSetting('module_tawkto', $currentSettings, $store_id);
 
 		echo json_encode(array('success' => true));
@@ -250,5 +310,34 @@ class Tawkto extends Controller
 		}
 
 		return true;
+	}
+
+	/**
+	 * Get widget options from setting
+	 *
+	 * @return Array
+	 */
+	public function getWidgetOpts($settings) {
+		if (isset($settings['module_tawkto_widget']['widget_config'])) {
+			return $settings['module_tawkto_widget']['widget_config'];
+		}
+
+		return array();
+	}
+
+	/**
+	 * Get display options from setting
+	 *
+	 * @return Array
+	 */
+	public function getDisplayOpts($settings)
+	{
+		$options = $this->config->get('tawkto_visibility');
+
+		if (isset($settings['module_tawkto_visibility'])) {
+			$options = $settings['module_tawkto_visibility'];
+		}
+
+		return $options;
 	}
 }

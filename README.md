@@ -33,3 +33,5 @@ Visit our [Help Center](https://help.tawk.to/) for answers to FAQs
 
 ### 1.0.0
 * Choose desired widget and it will be inserted in your site
+* Setup different widget/settings using the store selection
+* Page visibility control with pattern matching
