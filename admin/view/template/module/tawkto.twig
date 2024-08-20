@@ -258,9 +258,6 @@
 		jQuery('#tawkIframe').attr('src', src);
 	}
 
-	// Init iframe
-	displayWidget();
-
 	window.addEventListener('message', function (e) {
 
 		if (e.origin === baseUrl) {
@@ -339,6 +336,9 @@
 	}
 
 	jQuery(document).ready(function () {
+		// Init iframe
+		displayWidget();
+
 		if (jQuery("#always_display").prop("checked")) {
 			jQuery('.show_specific').prop('disabled', true);
 		} else {
@@ -394,7 +394,8 @@
 								continue;
 							}
 
-							store.display_opts[field.name] = field.value === '1';
+							// serializeArray() only includes "successful controls"
+							store.display_opts[field.name] = true;
 						}
 					}
 				}
