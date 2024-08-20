@@ -12,20 +12,11 @@
 	<div class="page-header">
 		<div class="container-fluid">
 			<div class="pull-right">&nbsp;</div>
-			<!-- <h1>{{ heading_title }}</h1> -->
 			<ul class="breadcrumb">
 				{% for breadcrumb in breadcrumbs %}
-				<li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+				<li class="breadcrumb-item"><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
 				{% endfor %}
 			</ul>
-			{% if false %}
-			<div class="pull-right">
-				<button type="submit" form="form-module" data-toggle="tooltip" title="{{ button_save }}"
-					class="btn btn-primary"><i class="fa fa-save"></i></button>
-				<a href="{{ cancel }}" data-toggle="tooltip" title="{{ button_cancel }}" class="btn btn-default"><i
-						class="fa fa-reply"></i></a>
-			</div>
-			{% endif %}
 		</div>
 	</div>
 
@@ -35,43 +26,21 @@
 			<button type="button" class="close" data-dismiss="alert">&times;</button>
 		</div>
 		{% endif %}
-		{% if false %}
-		<div class="panel panel-default">
-			<div class="panel-heading">
-				<h3 class="panel-title"><i class="fa fa-pencil"></i> {{ text_edit }}</h3>
-			</div>
-			<div class="panel-body">
-				<form action="{{ action }}" method="post" enctype="multipart/form-data" id="form-module"
-					class="form-horizontal">
-					<div class="form-group">
-						<label class="col-sm-2 control-label" for="input-status">{{ entry_status }}</label>
-						<div class="col-sm-10">
-							<select name="module_tawkto_status" id="input-status" class="form-control">
-								{% if module_tawkto_status %}
-								<option value="1" selected="selected">{{ text_enabled }}</option>
-								<option value="0">{{ text_disabled }}</option>
-								{% else %}
-								<option value="1">{{ text_enabled }}</option>
-								<option value="0" selected="selected">{{ text_disabled }}</option>
-								{% endif %}
-							</select>
-						</div>
-					</div>
-				</form>
-			</div>
-		</div>
-		<hr>
-		{% endif %}
 
 		<div class="box">
 			<div class="heading">
 				<h1><img src="../extension/tawkto/admin/view/image/module/tawky.png" alt="" /> {{ heading_title }}</h1>
 			</div>
 
-			<div class="box">
-				{% if same_user == false %}
-				<div id="widget_already_set" class="alert alert-warning">Notice: Widget already set by other user</div>
-				{% endif %}
+			<label for="store_id" class="storeids-label">Select Store</label>
+			<select name="store_id" class="storeids">
+				{% for store in hierarchy %}
+				<option value="{{ store.id }}">{{ store.name }}</option>
+				{% endfor %}
+			</select>
+
+			<div id="box">
+				<div id="widget_already_set" class="alert alert-warning" style="display:none">Notice: Widget already set by other user</div>
 			</div>
 			<div class="content" style="position: relative;">
 				<div id="loader">
@@ -79,28 +48,215 @@
 				</div>
 
 				<iframe id="tawkIframe" src=""></iframe>
-				<input type="hidden" class="hidden widget_vars" name="page_id"
-					value="{{ (widget_config.page_id is null)?0:widget_config.page_id}}">
-				<input type="hidden" class="hidden widget_vars" name="widget_id"
-					value="{{ (widget_config.widget_id is null)?0:widget_config.widget_id}}">
-				<input type="hidden" class="hidden widget_vars" name="store_id" value="{{store_id}}">
-				<input type="hidden" class="hidden widget_vars" name="store_layout_id" value="{{store_layout_id}}">
+			</div>
+		</div>
+		<div class="box visibility_block">
+			<div class="row">
+				<div class="col-lg-10">
+					<form id="module_form" class="form-horizontal" action="" method="post">
+						<div class="col-lg-12">
+							<div class="panel-heading"><strong>Visibility Settings</strong></div>
+						</div>
+						<div class="form-group col-lg-12 row">
+							<label for="always_display" class="col-xs-6 control-label">Always show Tawk.To widget on
+								every page</label>
+							<div class="col-xs-6 control-label ">
+								<input type="checkbox" class="control-label col-xs-6" name="always_display"
+									id="always_display" value="1"
+									{{(hierarchy[0].display_opts.always_display)?'checked':''}} />
+							</div>
+						</div>
+						<div class="form-group col-lg-12 row">
+							<label for="hide_oncustom" class="col-sm-6 control-label">Except on pages:</label>
+							<div class="col-sm-6 control-label">
+								{% if hierarchy[0].display_opts.hide_oncustom is empty %}
+								<textarea class="form-control hide_specific" name="hide_oncustom" id="hide_oncustom"
+									cols="30" rows="10"></textarea>
+								{% else %}
+								<textarea class="form-control hide_specific" name="hide_oncustom" id="hide_oncustom"
+									cols="30"
+									rows="10">{% for page in hierarchy[0].display_opts.hide_oncustom %}{{page ~ '\r\n'}}{% endfor %}</textarea>
+								{% endif %}
+								<br>
+								<div class="justify">
+									Add URLs/paths to pages in which you would like to hide the widget. ( if "always
+									show" is checked )<br>
+									Put each URL/path in a new line. Paths should have a leading '/'.
+									<br>
+									<div class="tawk-tooltip">
+										Examples of accepted path patterns
+										<ul class="tawk-tooltiptext">
+											<li>*</li>
+											<li>*/to/somewhere</li>
+											<li>/*/to/somewhere</li>
+											<li>/path/*/somewhere</li>
+											<li>/path/*/lead/*/somewhere</li>
+											<li>/path/*/*/somewhere</li>
+											<li>/path/to/*</li>
+											<li>/path/to/*/</li>
+											<li>*/to/*/page</li>
+											<li>/*/to/*/page</li>
+											<li>/path/*/other/*</li>
+											<li>/path/*/other/*/</li>
+											<li>http://www.example.com/</li>
+											<li>http://www.example.com/*</li>
+											<li>http://www.example.com/*/to/somewhere</li>
+											<li>http://www.example.com/path/*/somewhere</li>
+											<li>http://www.example.com/path/*/lead/*/somewhere</li>
+											<li>http://www.example.com/path/*/*/somewhere</li>
+											<li>http://www.example.com/path/to/*</li>
+											<li>http://www.example.com/path/to/*/</li>
+											<li>http://www.example.com/*/to/*/page</li>
+											<li>http://www.example.com/path/*/other/*</li>
+											<li>http://www.example.com/path/*/other/*/</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="form-group col-lg-12 row">
+							<label for="show_onfrontpage" class="col-xs-6 control-label">Show on frontpage</label>
+							<div class="col-xs-6 control-label ">
+								<input type="checkbox" class="control-label col-xs-6 show_specific"
+									name="show_onfrontpage" id="show_onfrontpage" value="1"
+									{{(hierarchy[0].display_opts.show_onfrontpage)?'checked':''}} />
+							</div>
+						</div>
+						<div class="form-group col-lg-12 row">
+							<label for="show_oncategory" class="col-xs-6 control-label">Show on category pages</label>
+							<div class="col-xs-6 control-label ">
+								<input type="checkbox" class="control-label col-xs-6 show_specific"
+									name="show_oncategory" id="show_oncategory" value="1"
+									{{(hierarchy[0].display_opts.show_oncategory)?'checked':''}} />
+							</div>
+						</div>
+						<div class="form-group col-lg-12 row">
+							<label for="show_oncustom" class="col-sm-6 control-label">Show on pages:</label>
+							<div class="col-sm-6 control-label">
+								{% if hierarchy[0].display_opts.show_oncustom is empty %}
+								<textarea class="form-control show_specific" name="show_oncustom" id="show_oncustom"
+									cols="30" rows="10"></textarea>
+								{% else %}
+								<textarea class="form-control show_specific" name="show_oncustom" id="show_oncustom"
+									cols="30"
+									rows="10">{% for page in hierarchy[0].display_opts.show_oncustom %}{{page ~ '\r\n'}}{% endfor %}</textarea>
+								{% endif %}
+								<br>
+								<div class="justify">
+									Add URLs/paths to pages in which you would like to show the widget.<br>
+									Put each URL/path in a new line. Paths should have a leading '/'.
+									<br>
+									<div class="tawk-tooltip">
+										Examples of accepted path patterns
+										<ul class="tawk-tooltiptext">
+											<li>*</li>
+											<li>*/to/somewhere</li>
+											<li>/*/to/somewhere</li>
+											<li>/path/*/somewhere</li>
+											<li>/path/*/lead/*/somewhere</li>
+											<li>/path/*/*/somewhere</li>
+											<li>/path/to/*</li>
+											<li>/path/to/*/</li>
+											<li>*/to/*/page</li>
+											<li>/*/to/*/page</li>
+											<li>/path/*/other/*</li>
+											<li>/path/*/other/*/</li>
+											<li>http://www.example.com/</li>
+											<li>http://www.example.com/*</li>
+											<li>http://www.example.com/*/to/somewhere</li>
+											<li>http://www.example.com/path/*/somewhere</li>
+											<li>http://www.example.com/path/*/lead/*/somewhere</li>
+											<li>http://www.example.com/path/*/*/somewhere</li>
+											<li>http://www.example.com/path/to/*</li>
+											<li>http://www.example.com/path/to/*/</li>
+											<li>http://www.example.com/*/to/*/page</li>
+											<li>http://www.example.com/path/*/other/*</li>
+											<li>http://www.example.com/path/*/other/*/</li>
+										</ul>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="form-group col-lg-12" style="margin-bottom: 1rem;">
+							<div class="col-lg-6 col-xs-12">
+								<button type="submit" value="1" id="module_form_submit_btn" name="submitBlockCategories"
+									class="btn btn-default pull-right"><i class="process-icon-save"></i> Save</button>
+							</div>
+							<div class="col-lg-6 col-xs-12">
+								<div id="optionsSuccessMessage" class="alert alert-success col-lg-12">
+									Successfully set widget options to your site
+								</div>
+							</div>
+						</div>
+					</form>
+				</div>
 			</div>
 		</div>
 	</div>
 </div>
 <script>
 	var currentHost = window.location.protocol + '//' + window.location.host,
-		url = '{{ iframe_url }}&pltf=opencart&pltfv=3&parentDomain=' + currentHost,
 		baseUrl = '{{ base_url }}',
 		storeHierarchy = {{ hierarchy | json_encode() }};
 
-	jQuery('#tawkIframe').attr('src', url);
 	jQuery('#tawkIframe').on('load', function () {
-		$('#loader').hide();
-		$(this).show();
+		jQuery('#loader').hide();
+		jQuery(this).show();
 	});
-	var iframe = jQuery('#tawk_widget_customization')[0];
+
+	// Reload iframe and options on store change
+	jQuery('select[name="store_id"]').on('change', function () {
+		displayWidget(this.value);
+
+		for (store of storeHierarchy) {
+			if (store.id !== this.value) {
+				continue;
+			}
+
+			jQuery('input[name="always_display"]').prop('checked', store.display_opts.always_display);
+			jQuery('input[name="show_onfrontpage"]').prop('checked', store.display_opts.show_onfrontpage);
+			jQuery('input[name="show_oncategory"]').prop('checked', store.display_opts.show_oncategory);
+
+			jQuery('textarea[name="show_oncustom"]').val(store.display_opts.show_oncustom.join('\n'));
+			jQuery('textarea[name="hide_oncustom"]').val(store.display_opts.hide_oncustom.join('\n'));
+
+			if (store.display_opts.always_display) {
+				jQuery('.hide_specific').prop('disabled', false);
+				jQuery('.show_specific').prop('disabled', true);
+			} else {
+				jQuery('.hide_specific').prop('disabled', true);
+				jQuery('.show_specific').prop('disabled', false);
+			}
+		}
+	});
+
+	// Loads iframe with saved widget settings
+	function displayWidget(store_id = '0') {
+		jQuery('#widget_already_set').hide();
+		jQuery('#tawkIframe').hide();
+		jQuery('#loader').show();
+
+		var src = baseUrl + '/generic/widgets?';
+
+		for (store of storeHierarchy) {
+			if (store.id !== store_id) {
+				continue;
+			}
+
+			if (store.current.widget_id) {
+				src = src + '&currentWidgetId=' + store.current.widget_id;
+			}
+			if (store.current.page_id) {
+				src = src + '&currentPageId=' + store.current.page_id;
+			}
+			if (store.current.user_id && store.current.user_id !== '{{ current_user }}') {
+				jQuery('#widget_already_set').show();
+			}
+		}
+		src = src + '&pltf=opencart&pltfv=4&parentDomain=' + currentHost;
+
+		jQuery('#tawkIframe').attr('src', src);
+	}
 
 	window.addEventListener('message', function (e) {
 
@@ -111,10 +267,6 @@
 
 			if (e.data.action === 'removeWidget') {
 				removeTawkWidget(e);
-			}
-
-			if (e.data.action === 'getIdValues') {
-				e.source.postMessage({ action: 'idValues', values: storeHierarchy }, baseUrl);
 			}
 
 			if (e.data.action === 'reloadHeight') {
@@ -136,45 +288,122 @@
 		iframe.height(height);
 	}
 
+	// Sets widget settings for selected store
 	function setTawkWidget(e) {
-		var store_layout = e.data.id;
+		var store_id = jQuery('select[name="store_id"]').val();
 		jQuery.post('{{url.set_widget_url}}', {
 			pageId: e.data.pageId,
 			widgetId: e.data.widgetId,
-			id: e.data.id,
-			store: parseInt(store_layout),
-			store_layout: e.data.id
+			store: store_id,
 		}, function (r) {
 			if (r.success) {
 				e.source.postMessage({ action: 'setDone' }, baseUrl);
 
-				jQuery('input[name="page_id"]').val(e.data.pageId);
-				jQuery('input[name="widget_id"]').val(e.data.widgetId);
-				var newval = parseInt(store_layout);
-				jQuery('input[name="store_id"]').val(newval);
-				jQuery('input[name="store_layout_id"]').val(e.data.id);
+				// Update saved widget settings
+				for (store of storeHierarchy) {
+					if (store.id === store_id) {
+						store.current = {
+							page_id: e.data.pageId,
+							widget_id: e.data.widgetId
+						}
+					}
+				}
 			} else {
 				e.source.postMessage({ action: 'setFail' }, baseUrl);
 			}
 		});
 	}
 
+	// Remove widget settings for selected store
 	function removeTawkWidget(e) {
-		var store_layout = e.data.id;
+		var store_id = jQuery('select[name="store_id"]').val();
 		jQuery.post('{{url.remove_widget_url}}', {
-			id: e.data.id,
-			store: parseInt(store_layout),
-			store_layout: e.data.id,
+			store: store_id,
 		}, function (r) {
 			if (r.success) {
 				e.source.postMessage({ action: 'removeDone' }, baseUrl);
 
-				jQuery('.widget_vars').val();
+				for (store of storeHierarchy) {
+					if (store.id === store_id) {
+						store.current = {};
+					}
+				}
 			} else {
 				e.source.postMessage({ action: 'removeFail' }, baseUrl);
 			}
 
 		});
 	}
+
+	jQuery(document).ready(function () {
+		// Init iframe
+		displayWidget();
+
+		if (jQuery("#always_display").prop("checked")) {
+			jQuery('.show_specific').prop('disabled', true);
+		} else {
+			jQuery('.hide_specific').prop('disabled', true);
+		}
+
+		jQuery("#always_display").change(function () {
+			if (this.checked) {
+				jQuery('.hide_specific').prop('disabled', false);
+				jQuery('.show_specific').prop('disabled', true);
+			} else {
+				jQuery('.hide_specific').prop('disabled', true);
+				jQuery('.show_specific').prop('disabled', false);
+			}
+		});
+
+		// process the form
+		jQuery('#module_form').submit(function (event) {
+			var store_id = jQuery('select[name="store_id"]').val();
+			var form = jQuery(this);
+
+			$path = '{{url.set_options_url}}';
+			jQuery.post($path, {
+				store: store_id,
+				options: form.serialize(),
+			}, function (r) {
+				if (r.success) {
+					$('#optionsSuccessMessage').toggle().delay(3000).fadeOut();
+
+					// Update saved options
+					var fields = form.serializeArray();
+					for (store of storeHierarchy) {
+						if (store.id !== store_id) {
+							continue;
+						}
+
+						store.display_opts = {
+							'always_display': false,
+							'show_onfrontpage': false,
+							'show_oncategory': false,
+							'show_oncustom': [],
+							'hide_oncustom': [],
+						};
+
+						for (field of fields) {
+							if (field.name === 'show_oncustom') {
+								store.display_opts['show_oncustom'] = field.value.replaceAll('\r', '\n').split('\n').filter(Boolean);
+								continue;
+							}
+
+							if (field.name === 'hide_oncustom') {
+								store.display_opts['hide_oncustom'] = field.value.replaceAll('\r', '\n').split('\n').filter(Boolean);
+								continue;
+							}
+
+							// serializeArray() only includes "successful controls"
+							store.display_opts[field.name] = true;
+						}
+					}
+				}
+			});
+
+			// stop the form from submitting the normal way and refreshing the page
+			event.preventDefault();
+		});
+	});
 </script>
 {{ footer }}
