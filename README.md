@@ -16,7 +16,7 @@ This section describes how to install the plugin and get it working.
 ### Adding the module
 
 #### Extension Installer
-1. Download the plugin ending in `.ocmod.zip` from the OpenCart Marketplace.
+1. Download the plugin ending in `.ocmod.zip` from the OpenCart Marketplace or the [latest release](https://github.com/tawk/tawk-opencart4/releases).
 2. Go to Extensions -> Installer and upload the zip file.
 
 ### Widget Configuration
@@ -33,3 +33,5 @@ Visit our [Help Center](https://help.tawk.to/) for answers to FAQs
 
 ### 1.0.0
 * Choose desired widget and it will be inserted in your site
+* Setup different widget/settings using the store selection
+* Page visibility control with pattern matching
