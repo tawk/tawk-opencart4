@@ -306,7 +306,14 @@ class Web {
 
 		$this->driver->find_element_and_click( 'button[type="submit"]' );
 
-		sleep(5);
+		$this->driver->wait_for_seconds( 3 );
+
+		$success_alert = $this->driver->find_and_check_element_by_xpath( '//*[contains(text(), "Success: You have modified Stores!")]' );
+		if ( is_null( $success_alert ) ) {
+			echo 'Second store not created.';
+		}
+
+		$this->driver->wait_for_seconds( 1 );
 	}
 
 	public function goto_plugin_settings() {
