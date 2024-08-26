@@ -25,7 +25,7 @@
 			}
 
 			var jsonData = xhr.responseJSON;
-			if (!jsonData.total) {
+			if (!jsonData.success) {
 				return;
 			}
 
@@ -45,7 +45,7 @@
 			}
 
 			var routeParam = settingsUrlParams.get('route');
-			if (routeParam !== 'checkout/cart/add') {
+			if (routeParam !== 'checkout/cart.add') {
 				return;
 			}
 
@@ -56,7 +56,7 @@
 			var itemQty = settingsData.get('quantity');
 
 			var successMsgHTML = jQuery.parseHTML(jsonData.success);
-			var productAnchor = jQuery(successMsgHTML).siblings('a[href*="product/product"]');
+			var productAnchor = jQuery(successMsgHTML).siblings('a[href*="/product/"]');
 			if (productAnchor.length === 0) {
 				return;
 			}
@@ -71,7 +71,7 @@
 				'product-name': productName,
 				'product-url': productUrl,
 				'item-qty': itemQty,
-				'cart-total': jsonData.total,
+				// 'cart-total': jsonData.total,
 			};
 
 			Tawk_API.addEvent('cart-item-added', addedItem, function (error) {

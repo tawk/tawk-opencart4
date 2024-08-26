@@ -9,4 +9,7 @@ $_['tawkto_visibility'] = array(
 $_['tawkto_privacy'] = array(
 	'enable_visitor_recognition' => false,
 );
+$_['tawkto_cart'] = array(
+	'monitor_customer_cart' => false,
+)
 ?>

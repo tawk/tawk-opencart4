@@ -141,6 +141,7 @@ class Tawkto extends Controller
 			'current' => $this->getWidgetOpts($currentSettings),
 			'display_opts' => $this->getDisplayOpts($currentSettings),
 			'privacy_opts' => $this->getPrivacyOpts($currentSettings),
+			'cart_opts' => $this->getCartOpts($currentSettings),
 		);
 
 		foreach ($stores as $store) {
@@ -152,6 +153,7 @@ class Tawkto extends Controller
 				'current' => $this->getWidgetOpts($currentSettings),
 				'display_opts' => $this->getDisplayOpts($currentSettings),
 				'privacy_opts' => $this->getPrivacyOpts($currentSettings),
+				'cart_opts' => $this->getCartOpts($currentSettings),
 			);
 		}
 
@@ -240,6 +242,8 @@ class Tawkto extends Controller
 
 		$privacyOpts = $this->config->get('tawkto_privacy');
 
+		$cartOpts = $this->config->get('tawkto_cart');
+
 		if (isset($_POST['options']) && !empty($_POST['options'])) {
 			$options = explode('&', $_POST['options']);
 
@@ -272,6 +276,10 @@ class Tawkto extends Controller
 					case 'enable_visitor_recognition':
 						$privacyOpts[$key] = true;
 						break;
+
+					case 'monitor_customer_cart':
+						$cartOpts[$key] = true;
+						break;
 				}
 			}
 		}
@@ -279,6 +287,7 @@ class Tawkto extends Controller
 		$currentSettings = $this->getCurrentSettingsFor($store_id);
 		$currentSettings['module_tawkto_visibility'] = $visibilityOpts;
 		$currentSettings['module_tawkto_privacy'] = $privacyOpts;
+		$currentSettings['module_tawkto_cart'] = $cartOpts;
 		$this->model_setting_setting->editSetting('module_tawkto', $currentSettings, $store_id);
 
 		echo json_encode(array('success' => true));
@@ -361,6 +370,22 @@ class Tawkto extends Controller
 
 		if (isset($settings['module_tawkto_privacy'])) {
 			$options = $settings['module_tawkto_privacy'];
+		}
+
+		return $options;
+	}
+
+	/**
+	 * Get cart options from setting
+	 *
+	 * @return Array
+	 */
+	public function getCartOpts($settings)
+	{
+		$options = $this->config->get('tawkto_cart');
+
+		if (isset($settings['module_tawkto_cart'])) {
+			$options = $settings['module_tawkto_cart'];
 		}
 
 		return $options;
