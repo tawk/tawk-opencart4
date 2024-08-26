@@ -131,3 +131,10 @@ html {
 .justify {
 	text-align: justify;
 }
+
+.attrib_desc {
+	color: #aaa;
+	font-weight: normal;
+	font-size: 13px;
+	font-style: italic;
+}

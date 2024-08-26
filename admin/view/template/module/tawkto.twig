@@ -177,6 +177,23 @@
 								</div>
 							</div>
 						</div>
+						<br><br>
+						<div class="col-lg-12">
+							<div class="panel-heading"><strong>Privacy Settings</strong></div>
+						</div>
+						<div class="form-group col-lg-12 row">
+							<label for="enable_visitor_recognition" class="col-xs-6 control-label">
+								Enable Visitor Recognition
+								<br>
+								<span class="attrib_desc">Enable sending of customer details to tawk.to dashboard when
+									the customer is logged in.</span>
+							</label>
+							<div class="col-xs-6 control-label ">
+								<input type="checkbox" class="control-label col-xs-6" name="enable_visitor_recognition"
+									id="enable_visitor_recognition" value="1"
+									{{(hierarchy[0].privacy_opts.enable_visitor_recognition)?'checked':''}} />
+							</div>
+						</div>
 						<div class="form-group col-lg-12" style="margin-bottom: 1rem;">
 							<div class="col-lg-6 col-xs-12">
 								<button type="submit" value="1" id="module_form_submit_btn" name="submitBlockCategories"
@@ -216,6 +233,8 @@
 			jQuery('input[name="always_display"]').prop('checked', store.display_opts.always_display);
 			jQuery('input[name="show_onfrontpage"]').prop('checked', store.display_opts.show_onfrontpage);
 			jQuery('input[name="show_oncategory"]').prop('checked', store.display_opts.show_oncategory);
+
+			jQuery('input[name="enable_visitor_recognition"]').prop('checked', store.privacy_opts.enable_visitor_recognition);
 
 			jQuery('textarea[name="show_oncustom"]').val(store.display_opts.show_oncustom.join('\n'));
 			jQuery('textarea[name="hide_oncustom"]').val(store.display_opts.hide_oncustom.join('\n'));
@@ -383,6 +402,10 @@
 							'hide_oncustom': [],
 						};
 
+						store.privacy_opts = {
+							'enable_visitor_recognition': false,
+						}
+
 						for (field of fields) {
 							if (field.name === 'show_oncustom') {
 								store.display_opts['show_oncustom'] = field.value.replaceAll('\r', '\n').split('\n').filter(Boolean);
@@ -395,7 +418,17 @@
 							}
 
 							// serializeArray() only includes "successful controls"
-							store.display_opts[field.name] = true;
+							switch (field.name) {
+								case 'always_display':
+								case 'show_onfrontpage':
+								case 'show_oncategory':
+									store.display_opts[field.name] = true;
+									break;
+
+								case 'enable_visitor_recognition':
+									store.privacy_opts[field.name] = true;
+									break;
+							}
 						}
 					}
 				}
