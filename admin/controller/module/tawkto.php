@@ -140,6 +140,8 @@ class Tawkto extends Controller
 			'name'    => 'Default store',
 			'current' => $this->getWidgetOpts($currentSettings),
 			'display_opts' => $this->getDisplayOpts($currentSettings),
+			'privacy_opts' => $this->getPrivacyOpts($currentSettings),
+			'cart_opts' => $this->getCartOpts($currentSettings),
 		);
 
 		foreach ($stores as $store) {
@@ -150,6 +152,8 @@ class Tawkto extends Controller
 				'name'    => $store['name'],
 				'current' => $this->getWidgetOpts($currentSettings),
 				'display_opts' => $this->getDisplayOpts($currentSettings),
+				'privacy_opts' => $this->getPrivacyOpts($currentSettings),
+				'cart_opts' => $this->getCartOpts($currentSettings),
 			);
 		}
 
@@ -233,8 +237,12 @@ class Tawkto extends Controller
 			die();
 		}
 
-		$jsonOpts = $this->config->get('tawkto_visibility');
-		$jsonOpts['always_display'] = false; // account for absence of checkbox value
+		$visibilityOpts = $this->config->get('tawkto_visibility');
+		$visibilityOpts['always_display'] = false; // account for absence of checkbox value
+
+		$privacyOpts = $this->config->get('tawkto_privacy');
+
+		$cartOpts = $this->config->get('tawkto_cart');
 
 		if (isset($_POST['options']) && !empty($_POST['options'])) {
 			$options = explode('&', $_POST['options']);
@@ -255,21 +263,31 @@ class Tawkto extends Controller
 								$non_empty_values[] = $trimmed;
 							}
 						}
-						$jsonOpts[$key] = $non_empty_values;
+						$visibilityOpts[$key] = $non_empty_values;
 						break;
 
 					// serialize() only includes "successful controls"
 					case 'always_display':
 					case 'show_onfrontpage':
 					case 'show_oncategory':
-						$jsonOpts[$key] = true;
+						$visibilityOpts[$key] = true;
+						break;
+
+					case 'enable_visitor_recognition':
+						$privacyOpts[$key] = true;
+						break;
+
+					case 'monitor_customer_cart':
+						$cartOpts[$key] = true;
 						break;
 				}
 			}
 		}
 
 		$currentSettings = $this->getCurrentSettingsFor($store_id);
-		$currentSettings['module_tawkto_visibility'] = $jsonOpts;
+		$currentSettings['module_tawkto_visibility'] = $visibilityOpts;
+		$currentSettings['module_tawkto_privacy'] = $privacyOpts;
+		$currentSettings['module_tawkto_cart'] = $cartOpts;
 		$this->model_setting_setting->editSetting('module_tawkto', $currentSettings, $store_id);
 
 		echo json_encode(array('success' => true));
@@ -336,6 +354,38 @@ class Tawkto extends Controller
 
 		if (isset($settings['module_tawkto_visibility'])) {
 			$options = $settings['module_tawkto_visibility'];
+		}
+
+		return $options;
+	}
+
+	/**
+	 * Get privacy options from setting
+	 *
+	 * @return Array
+	 */
+	public function getPrivacyOpts($settings)
+	{
+		$options = $this->config->get('tawkto_privacy');
+
+		if (isset($settings['module_tawkto_privacy'])) {
+			$options = $settings['module_tawkto_privacy'];
+		}
+
+		return $options;
+	}
+
+	/**
+	 * Get cart options from setting
+	 *
+	 * @return Array
+	 */
+	public function getCartOpts($settings)
+	{
+		$options = $this->config->get('tawkto_cart');
+
+		if (isset($settings['module_tawkto_cart'])) {
+			$options = $settings['module_tawkto_cart'];
 		}
 
 		return $options;

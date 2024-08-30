@@ -32,16 +32,26 @@ class Tawkto extends Controller
 	public function index()
 	{
 		$this->load->model('setting/setting');
-		// get current plugin version in db
-		$tawk_settings = $this->model_setting_setting->getSetting('module_tawkto'); // this gets the default store settings since that's where the version is stored.
-		$plugin_version_in_db = '';
-		if (isset($tawk_settings['module_tawkto_version'])) {
-			$plugin_version_in_db = $tawk_settings['module_tawkto_version'];
-		}
-
-		$widget = $this->getWidget($plugin_version_in_db);
 
 		$data = array();
+		$data['visitor'] = $this->getVisitor();
+
+		$privacy_opts = $this->config->get('tawkto_privacy');
+		$cart_opts = $this->config->get('tawkto_cart');
+
+		$settings = $this->getCurrentSettings();
+		if (isset($settings['module_tawkto_privacy'])) {
+			$privacy_opts = $settings['module_tawkto_privacy'];
+		}
+		if (isset($settings['module_tawkto_cart'])) {
+			$cart_opts = $settings['module_tawkto_cart'];
+		}
+
+		$data['enable_visitor_recognition'] = $privacy_opts['enable_visitor_recognition'];
+		$data['can_monitor_customer_cart'] = $cart_opts['monitor_customer_cart'];
+
+		$widget = $this->getWidget();
+
 		if (isset($widget['page_id']) && isset($widget['widget_id'])) {
 			$data['page_id'] = $widget['page_id'];
 			$data['widget_id'] = $widget['widget_id'];
@@ -57,8 +67,7 @@ class Tawkto extends Controller
 	 */
 	private function getWidget()
 	{
-		$store_id = $this->config->get('config_store_id');
-		$settings = $this->model_setting_setting->getSetting('module_tawkto', $store_id);
+		$settings = $this->getCurrentSettings();
 
 		if (!isset($settings['module_tawkto_widget']['widget_config'])) {
 			return null;
@@ -129,5 +138,35 @@ class Tawkto extends Controller
 	private function matchPatterns($current_page, $pages)
 	{
 		return UrlPatternMatcher::match($current_page, $pages);
+	}
+
+	/**
+	 * Get visitor details
+	 *
+	 * @return array[string][string]|null
+	 */
+	private function getVisitor()
+	{
+		$logged_in = $this->customer->isLogged();
+		if ($logged_in) {
+			$data = array(
+					'name' => $this->customer->getFirstName().' '.$this->customer->getLastName(),
+					'email' => $this->customer->getEmail(),
+				);
+			return json_encode($data);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Get current settings
+	 *
+	 * @return array
+	 */
+	private function getCurrentSettings()
+	{
+		$store_id = $this->config->get('config_store_id');
+		return $this->model_setting_setting->getSetting('module_tawkto', $store_id);
 	}
 }
