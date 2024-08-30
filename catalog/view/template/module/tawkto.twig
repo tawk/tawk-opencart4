@@ -10,7 +10,7 @@
 	var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
 
 	{% if visitor != null and enable_visitor_recognition %}
-	Tawk_API.visitor = {{visitor}};
+	Tawk_API.visitor = {{visitor | json_encode}};
 	{% endif %}
 
 	Tawk_API.onLoad = function () {

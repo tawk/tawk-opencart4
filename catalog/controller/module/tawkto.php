@@ -145,8 +145,8 @@ class Tawkto extends Controller
 		$logged_in = $this->customer->isLogged();
 		if ($logged_in) {
 			$data = array(
-					'name' => $logged_in?$this->customer->getFirstName().' '.$this->customer->getLastName():null,
-					'email' => $logged_in?$this->customer->getEmail():null,
+					'name' => $this->customer->getFirstName().' '.$this->customer->getLastName(),
+					'email' => $this->customer->getEmail(),
 				);
 			return json_encode($data);
 		}
