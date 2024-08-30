@@ -37,13 +37,18 @@ class Tawkto extends Controller
 		$data['visitor'] = $this->getVisitor();
 
 		$privacy_opts = $this->config->get('tawkto_privacy');
+		$cart_opts = $this->config->get('tawkto_cart');
 
 		$settings = $this->getCurrentSettings();
 		if (isset($settings['module_tawkto_privacy'])) {
 			$privacy_opts = $settings['module_tawkto_privacy'];
 		}
+		if (isset($settings['module_tawkto_cart'])) {
+			$cart_opts = $settings['module_tawkto_cart'];
+		}
 
 		$data['enable_visitor_recognition'] = $privacy_opts['enable_visitor_recognition'];
+		$data['can_monitor_customer_cart'] = $cart_opts['monitor_customer_cart'];
 
 		$widget = $this->getWidget();
 
