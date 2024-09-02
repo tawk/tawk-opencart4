@@ -143,7 +143,7 @@ class Tawkto extends Controller
 	/**
 	 * Get visitor details
 	 *
-	 * @return array[string][string]|null
+	 * @return string|null
 	 */
 	private function getVisitor()
 	{
