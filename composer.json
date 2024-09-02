@@ -7,10 +7,21 @@
     "require": {
         "tawk/url-utils": "2.0.1"
     },
+    "require-dev": {
+        "phpunit/phpunit": "^11.2",
+        "php-webdriver/webdriver": "^1.15"
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tawk\\Test\\": "test"
+        }
+    },
     "scripts": {
         "release": "composer run build:prod && composer run package",
+        "build:dev": "composer install",
         "build:prod": "composer install --no-dev",
-        "package": "./build-package.sh"
+        "package": "./build-package.sh",
+        "test": "phpunit"
     },
     "repositories": {
         "tawk-url-utils": {

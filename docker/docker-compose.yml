@@ -11,10 +11,13 @@ services:
       - ALLOW_EMPTY_PASSWORD=yes
 
   opencart:
-    container_name: opencart-40
+    container_name: ${WEB_HOST}
     depends_on:
       - db
-    image: docker.io/bitnami/opencart:4
+    build:
+      context: .
+      args:
+        SECOND_STORE: ${SECOND_STORE}
     ports:
       - 8080:8080
       - 8443:8443
@@ -25,12 +28,19 @@ services:
       - OPENCART_DATABASE_NAME=bitnami_opencart
       - OPENCART_USERNAME=admin
       - OPENCART_PASSWORD=admin
-      - OPENCART_HOST=localhost:8080
+      - OPENCART_HOST=${WEB_HOST}:${WEB_PORT}
       - ALLOW_EMPTY_PASSWORD=yes
     volumes:
       - web_data:/bitnami/opencart
       - web_storage_data:/bitnami/opencart_storage/
 
+  selenium:
+    container_name: selenium
+    image: selenium/standalone-${SELENIUM_BROWSER}:latest
+    shm_size: 2g
+    ports:
+      - ${SELENIUM_PORT}:4444
+      - 7900:7900
 volumes:
   db_data:
   web_data:

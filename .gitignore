@@ -1,3 +1,5 @@
 /vendor
 /tmp
 *.zip
+.phpunit.cache/*
+**/*.env.local
