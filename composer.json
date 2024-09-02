@@ -1,7 +1,7 @@
 {
     "name": "tawk/tawk-opencart4",
     "description": "tawk.to extension module for Opencart 4",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "type": "project",
     "license": "GPL3",
     "require": {

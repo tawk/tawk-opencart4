@@ -31,6 +31,10 @@ Visit our [Help Center](https://help.tawk.to/) for answers to FAQs
 
 ## Changelog
 
+### 1.1.0
+* Added visitor recognition, send your customer's name and email to your dashboard
+* Added cart integration, get notified in chat when your customer adds an item to cart
+
 ### 1.0.0
 * Choose desired widget and it will be inserted in your site
 * Setup different widget/settings using the store selection
