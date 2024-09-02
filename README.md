@@ -31,6 +31,9 @@ Visit our [Help Center](https://help.tawk.to/) for answers to FAQs
 
 ## Changelog
 
+### 1.1.1
+* Fix visitor recognition
+
 ### 1.1.0
 * Added visitor recognition, send your customer's name and email to your dashboard
 * Added cart integration, get notified in chat when your customer adds an item to cart
