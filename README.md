@@ -31,6 +31,9 @@ Visit our [Help Center](https://help.tawk.to/) for answers to FAQs
 
 ## Changelog
 
+### 1.1.2
+* Fix module status
+
 ### 1.1.1
 * Fix visitor recognition
 
