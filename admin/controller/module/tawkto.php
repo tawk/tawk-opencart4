@@ -76,6 +76,8 @@ class Tawkto extends Controller
 	public function install(): void
 	{
 		$this->load->model('setting/event');
+		$this->load->model('setting/setting');
+		$this->load->model('setting/store');
 
 		$data = array(
 			'code' => 'tawkto_widget',
@@ -87,6 +89,10 @@ class Tawkto extends Controller
 		);
 
 		$this->model_setting_event->addEvent($data);
+
+		$currentSettings = $this->getCurrentSettingsFor(0);
+		$currentSettings['module_tawkto_status'] = '1';
+		$this->model_setting_setting->editSetting('module_tawkto', $currentSettings, 0);
 	}
 
 	/**
