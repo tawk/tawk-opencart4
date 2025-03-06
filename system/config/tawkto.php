@@ -11,5 +11,9 @@ $_['tawkto_privacy'] = array(
 );
 $_['tawkto_cart'] = array(
 	'monitor_customer_cart' => false,
-)
+);
+$_['tawkto_security'] = array(
+	'secure_mode_enabled' => false,
+	'js_api_key' => null,
+);
 ?>

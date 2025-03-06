@@ -196,6 +196,34 @@
 						</div>
 						<br></br>
 						<div class="col-lg-12">
+							<div class="panel-heading"><strong>Security Settings</strong></div>
+						</div>
+						<div class="form-group col-lg-12 row">
+							<label for="secure_mode_enabled" class="col-xs-6 control-label">
+								Secure Mode Enabled
+								<br>
+								<span class="attrib_desc">If Secure Mode is enabled on your property, please enter your
+									Javascript API Key to ensure visitor recognition works correctly.</span>
+							</label>
+							<div class="col-xs-6 control-label ">
+								<input type="checkbox" class="control-label col-xs-6" name="secure_mode_enabled"
+									id="secure_mode_enabled" value="1"
+									{{(hierarchy[0].security_opts.secure_mode_enabled)?'checked':''}} />
+							</div>
+						</div>
+						<div class="form-group col-lg-12 row">
+							<label for="js_api_key" class="col-xs-6 control-label">
+								Javascript API Key
+								<br>
+								<span class="attrib_desc">Ensure hash is generated for secure mode</span>
+							</label>
+							<div class="col-xs-6 control-label ">
+								<input type="password" class="form-control" name="js_api_key"
+									id="js_api_key" value="{{hierarchy[0].security_opts.js_api_key}}" />
+							</div>
+						</div>
+						<br></br>
+						<div class="col-lg-12">
 							<div class="panel-heading"><strong>Cart	Integration</strong></div>
 						</div>
 						<div class="form-group col-xs-12 row">
