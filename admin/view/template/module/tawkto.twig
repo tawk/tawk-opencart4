@@ -219,6 +219,9 @@
 								<div id="optionsSuccessMessage" class="alert alert-success col-lg-12">
 									Successfully set widget options to your site
 								</div>
+								<div id="optionsErrorMessage" class="alert alert-danger col-lg-12">
+									Failed to set widget options to your site
+								</div>
 							</div>
 						</div>
 					</form>
@@ -402,59 +405,62 @@
 				store: store_id,
 				options: form.serialize(),
 			}, function (r) {
-				if (r.success) {
-					$('#optionsSuccessMessage').toggle().delay(3000).fadeOut();
+				if (!r.success) {
+					$('#optionsErrorMessage').text(r.message).toggle().delay(3000).fadeOut();
+					return;
+				}
 
-					// Update saved options
-					var fields = form.serializeArray();
-					for (store of storeHierarchy) {
-						if (store.id !== store_id) {
+				$('#optionsSuccessMessage').toggle().delay(3000).fadeOut();
+
+				// Update saved options
+				var fields = form.serializeArray();
+				for (store of storeHierarchy) {
+					if (store.id !== store_id) {
+						continue;
+					}
+
+					store.display_opts = {
+						'always_display': false,
+						'show_onfrontpage': false,
+						'show_oncategory': false,
+						'show_oncustom': [],
+						'hide_oncustom': [],
+					};
+
+					store.privacy_opts = {
+						'enable_visitor_recognition': false,
+					}
+
+					store.cart_opts = {
+						'monitor_customer_cart': false,
+					}
+
+					for (field of fields) {
+						if (field.name === 'show_oncustom') {
+							store.display_opts['show_oncustom'] = field.value.replaceAll('\r', '\n').split('\n').filter(Boolean);
 							continue;
 						}
 
-						store.display_opts = {
-							'always_display': false,
-							'show_onfrontpage': false,
-							'show_oncategory': false,
-							'show_oncustom': [],
-							'hide_oncustom': [],
-						};
-
-						store.privacy_opts = {
-							'enable_visitor_recognition': false,
+						if (field.name === 'hide_oncustom') {
+							store.display_opts['hide_oncustom'] = field.value.replaceAll('\r', '\n').split('\n').filter(Boolean);
+							continue;
 						}
 
-						store.cart_opts = {
-							'monitor_customer_cart': false,
-						}
+						// serializeArray() only includes "successful controls"
+						switch (field.name) {
+							case 'always_display':
+							case 'show_onfrontpage':
+							case 'show_oncategory':
+								store.display_opts[field.name] = true;
+								break;
 
-						for (field of fields) {
-							if (field.name === 'show_oncustom') {
-								store.display_opts['show_oncustom'] = field.value.replaceAll('\r', '\n').split('\n').filter(Boolean);
-								continue;
-							}
+							case 'enable_visitor_recognition':
+								store.privacy_opts[field.name] = true;
+								break;
 
-							if (field.name === 'hide_oncustom') {
-								store.display_opts['hide_oncustom'] = field.value.replaceAll('\r', '\n').split('\n').filter(Boolean);
-								continue;
-							}
-
-							// serializeArray() only includes "successful controls"
-							switch (field.name) {
-								case 'always_display':
-								case 'show_onfrontpage':
-								case 'show_oncategory':
-									store.display_opts[field.name] = true;
-									break;
-
-								case 'enable_visitor_recognition':
-									store.privacy_opts[field.name] = true;
-									break;
-
-								case 'monitor_customer_cart':
-									store.cart_opts[field.name] = true;
-									break;
-							}
+							case 'monitor_customer_cart':
+								store.cart_opts[field.name] = true;
+								break;
 						}
 					}
 				}
