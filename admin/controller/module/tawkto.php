@@ -338,11 +338,15 @@ class Tawkto extends Controller
 		if (!isset($currentSettings['module_tawkto_security'])) {
 			$currentSettings['module_tawkto_security'] = array();
 		}
+		if (!isset($currentSettings['module_tawkto_config_version'])) {
+			$currentSettings['module_tawkto_config_version'] = $this->config->get('tawkto_config_version');
+		}
 
 		$currentSettings['module_tawkto_visibility'] = array_merge($currentSettings['module_tawkto_visibility'], $visibilityOpts);
 		$currentSettings['module_tawkto_privacy'] = array_merge($currentSettings['module_tawkto_privacy'], $privacyOpts);
 		$currentSettings['module_tawkto_cart'] = array_merge($currentSettings['module_tawkto_cart'], $cartOpts);
 		$currentSettings['module_tawkto_security'] = array_merge($currentSettings['module_tawkto_security'], $securityOpts);
+		$currentSettings['module_tawkto_config_version'] = $currentSettings['module_tawkto_config_version'] + 1;
 		$this->model_setting_setting->editSetting('module_tawkto', $currentSettings, $store_id);
 
 		echo json_encode(array('success' => true));

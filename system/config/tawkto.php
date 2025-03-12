@@ -16,4 +16,5 @@ $_['tawkto_security'] = array(
 	'secure_mode_enabled' => false,
 	'js_api_key' => null,
 );
+$_['tawkto_config_version'] = 0;
 ?>
