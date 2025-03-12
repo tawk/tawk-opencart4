@@ -307,16 +307,18 @@ class Tawkto extends Controller
 							break;
 						}
 
-						try {
-							if (strlen(trim($value)) !== 40) {
-								throw new \Exception('Invalid API key. Please provide value with 40 characters');
-							}
+						if (strlen(trim($value)) !== 40) {
+							throw new \Exception('Invalid API key.');
+						}
 
+						try {
 							$securityOpts['js_api_key'] = $this->encryptData($value);
 						} catch (\Exception $e) {
+							error_log($e->getMessage());
+
 							unset($securityOpts['js_api_key']);
 
-							echo json_encode(array('success' => false, 'message' => $e->getMessage()));
+							echo json_encode(array('success' => false, 'message' => 'Error saving Javascript API Key.'));
 							die();
 						}
 				}
