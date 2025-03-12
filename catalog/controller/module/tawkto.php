@@ -42,6 +42,7 @@ class Tawkto extends Controller
 		$privacy_opts = $this->config->get('tawkto_privacy');
 		$cart_opts = $this->config->get('tawkto_cart');
 		$security_opts = $this->config->get('tawkto_security');
+		$config_version = $this->config->get('tawkto_config_version');
 
 		$settings = $this->getCurrentSettings();
 		if (isset($settings['module_tawkto_privacy'])) {
@@ -53,11 +54,15 @@ class Tawkto extends Controller
 		if (isset($settings['module_tawkto_security'])) {
 			$security_opts = $settings['module_tawkto_security'];
 		}
+		if (isset($settings['module_tawkto_config_version'])) {
+			$config_version = $settings['module_tawkto_config_version'];
+		}
 
 		$data['visitor'] = $this->getVisitor(array(
 			'enable_visitor_recognition' => $privacy_opts['enable_visitor_recognition'],
 			'secure_mode_enabled' => $security_opts['secure_mode_enabled'],
 			'js_api_key' => $security_opts['js_api_key'],
+			'config_version' => $config_version,
 		));
 		$data['can_monitor_customer_cart'] = $cart_opts['monitor_customer_cart'];
 
@@ -162,6 +167,7 @@ class Tawkto extends Controller
 		$enable_visitor_recognition = $params['enable_visitor_recognition'];
 		$secure_mode_enabled = $params['secure_mode_enabled'];
 		$encrypted_js_api_key = $params['js_api_key'];
+		$config_version = $params['config_version'];
 
 		if (!$enable_visitor_recognition) {
 			return null;
@@ -175,13 +181,11 @@ class Tawkto extends Controller
 				);
 
 			if ($secure_mode_enabled && !is_null($encrypted_js_api_key)) {
-				try {
-					$js_api_key = $this->getJsApiKey($encrypted_js_api_key);
-				} catch (\Exception $e) {
-					return null;
-				}
-
-				$data['hash'] = hash_hmac('sha256', $this->customer->getEmail(), $js_api_key);
+				$data['hash'] = $this->getVisitorHash(array(
+					'email' => $this->customer->getEmail(),
+					'js_api_key' => $encrypted_js_api_key,
+					'config_version' => $config_version,
+				));
 			}
 
 			return json_encode($data);
@@ -202,21 +206,48 @@ class Tawkto extends Controller
 	}
 
 	/**
-	 * Get js_api_key
-	 * @param string $encrypted_js_api_key
-	 * @return string JS API key
+	 * Get visitor hash
+	 *
+	 * @param array $params
+	 * @return string
 	 */
-	private function getJsApiKey($encrypted_js_api_key)
+	private function getVisitorHash($params)
 	{
-		if (isset($_SESSION['tawkto_js_api_key'])) {
-			return $_SESSION['tawkto_js_api_key'];
+		$configVersion = $params['config_version'];
+		$email = $params['email'];
+		$js_api_key = $params['js_api_key'];
+
+		if (isset($_SESSION['tawkto_visitor_hash'])) {
+			$currentSession = $_SESSION['tawkto_visitor_hash'];
+
+			if (isset($currentSession['hash']) &&
+				$currentSession['email'] === $email &&
+				$currentSession['config_version'] === $configVersion) {
+				return $currentSession['hash'];
+			}
 		}
 
-		$js_api_key = $this->decryptData($encrypted_js_api_key);
+		if (empty($js_api_key)) {
+			return '';
+		}
 
-		$_SESSION['tawkto_js_api_key'] = $js_api_key;
+		try {
+			$jsApiKey = $this->decryptData($js_api_key);
+		} catch (\Exception $e) {
+			error_log($e->getMessage());
 
-		return $js_api_key;
+			return '';
+		}
+
+		$hash = hash_hmac('sha256', $email, $jsApiKey);
+
+		$_SESSION['tawkto_visitor_hash'] = array(
+			'hash' => $hash,
+			'email' => $email,
+			'config_version' => $configVersion,
+		);
+
+		return $hash;
 	}
 
 	/**
