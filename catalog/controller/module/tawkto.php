@@ -210,13 +210,18 @@ class Tawkto extends Controller
 	 */
 	private function getVisitorHash($params)
 	{
+		$js_api_key = $params['js_api_key'];
+
+		if (empty($js_api_key)) {
+			return '';
+		}
+
 		if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
 			session_start();
 		}
 
 		$configVersion = $params['config_version'];
 		$email = $params['email'];
-		$js_api_key = $params['js_api_key'];
 
 		if (isset($_SESSION['tawkto_visitor_hash'])) {
 			$currentSession = $_SESSION['tawkto_visitor_hash'];
@@ -226,10 +231,6 @@ class Tawkto extends Controller
 				$currentSession['config_version'] === $configVersion) {
 				return $currentSession['hash'];
 			}
-		}
-
-		if (empty($js_api_key)) {
-			return '';
 		}
 
 		try {
