@@ -29,13 +29,16 @@ html {
 	display: none;
 }
 
-#optionsSuccessMessage {
+.alert {
 	position: absolute;
+	font-weight: bold;
+	display: none;
+}
+
+#optionsSuccessMessage {
 	background-color: #dff0d8;
 	color: #3c763d;
 	border-color: #d6e9c6;
-	font-weight: bold;
-	display: none;
 }
 
 .pull-right {
@@ -50,7 +53,7 @@ html {
 }
 
 @media only screen and (max-width: 1200px) {
-	#optionsSuccessMessage {
+	.alert {
 		position: relative;
 		margin-top: 1rem;
 	}

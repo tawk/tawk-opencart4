@@ -13,6 +13,9 @@ use \Opencart\System\Engine\Controller;
 
 class Tawkto extends Controller
 {
+	public const CREDENTIALS_FILE = DIR_EXTENSION . 'tawkto/system/config/credentials.json';
+	public const NO_CHANGE = 'nochange';
+
 	/**
 	 * __construct
 	 */
@@ -148,6 +151,7 @@ class Tawkto extends Controller
 			'display_opts' => $this->getDisplayOpts($currentSettings),
 			'privacy_opts' => $this->getPrivacyOpts($currentSettings),
 			'cart_opts' => $this->getCartOpts($currentSettings),
+			'security_opts' => $this->getSecurityOpts($currentSettings),
 		);
 
 		foreach ($stores as $store) {
@@ -160,6 +164,7 @@ class Tawkto extends Controller
 				'display_opts' => $this->getDisplayOpts($currentSettings),
 				'privacy_opts' => $this->getPrivacyOpts($currentSettings),
 				'cart_opts' => $this->getCartOpts($currentSettings),
+				'security_opts' => $this->getSecurityOpts($currentSettings),
 			);
 		}
 
@@ -250,6 +255,8 @@ class Tawkto extends Controller
 
 		$cartOpts = $this->config->get('tawkto_cart');
 
+		$securityOpts = $this->config->get('tawkto_security');
+
 		if (isset($_POST['options']) && !empty($_POST['options'])) {
 			$options = explode('&', $_POST['options']);
 
@@ -286,14 +293,63 @@ class Tawkto extends Controller
 					case 'monitor_customer_cart':
 						$cartOpts[$key] = true;
 						break;
+
+					case 'secure_mode_enabled':
+						$securityOpts[$key] = true;
+						break;
+
+					case 'js_api_key':
+						if ($value === self::NO_CHANGE) {
+							unset($securityOpts['js_api_key']);
+							break;
+						}
+
+						if ($value === '') {
+							break;
+						}
+
+						$value = trim($value);
+
+						if (strlen($value) !== 40) {
+							throw new \Exception('Invalid API key.');
+						}
+
+						try {
+							$securityOpts['js_api_key'] = $this->encryptData($value);
+						} catch (\Exception $e) {
+							error_log($e->getMessage());
+
+							unset($securityOpts['js_api_key']);
+
+							echo json_encode(array('success' => false, 'message' => 'Error saving Javascript API Key.'));
+							die();
+						}
 				}
 			}
 		}
 
 		$currentSettings = $this->getCurrentSettingsFor($store_id);
-		$currentSettings['module_tawkto_visibility'] = $visibilityOpts;
-		$currentSettings['module_tawkto_privacy'] = $privacyOpts;
-		$currentSettings['module_tawkto_cart'] = $cartOpts;
+		if (!isset($currentSettings['module_tawkto_visibility'])) {
+			$currentSettings['module_tawkto_visibility'] = array();
+		}
+		if (!isset($currentSettings['module_tawkto_privacy'])) {
+			$currentSettings['module_tawkto_privacy'] = array();
+		}
+		if (!isset($currentSettings['module_tawkto_cart'])) {
+			$currentSettings['module_tawkto_cart'] = array();
+		}
+		if (!isset($currentSettings['module_tawkto_security'])) {
+			$currentSettings['module_tawkto_security'] = array();
+		}
+		if (!isset($currentSettings['module_tawkto_config_version'])) {
+			$currentSettings['module_tawkto_config_version'] = $this->config->get('tawkto_config_version');
+		}
+
+		$currentSettings['module_tawkto_visibility'] = array_merge($currentSettings['module_tawkto_visibility'], $visibilityOpts);
+		$currentSettings['module_tawkto_privacy'] = array_merge($currentSettings['module_tawkto_privacy'], $privacyOpts);
+		$currentSettings['module_tawkto_cart'] = array_merge($currentSettings['module_tawkto_cart'], $cartOpts);
+		$currentSettings['module_tawkto_security'] = array_merge($currentSettings['module_tawkto_security'], $securityOpts);
+		$currentSettings['module_tawkto_config_version'] = $currentSettings['module_tawkto_config_version'] + 1;
 		$this->model_setting_setting->editSetting('module_tawkto', $currentSettings, $store_id);
 
 		echo json_encode(array('success' => true));
@@ -395,5 +451,81 @@ class Tawkto extends Controller
 		}
 
 		return $options;
+	}
+
+	/**
+	 * Get security options from setting
+	 *
+	 * @return Array
+	 */
+	public function getSecurityOpts($settings) {
+		$options = $this->config->get('tawkto_security');
+
+		if (isset($settings['module_tawkto_security'])) {
+			$options = $settings['module_tawkto_security'];
+		}
+
+		if (!empty($options['js_api_key'])) {
+			$options['js_api_key'] = self::NO_CHANGE;
+		}
+
+		return $options;
+	}
+
+
+	/**
+	 * Get credentials
+	 *
+	 * @return Array
+	 */
+	private function getCredentials() {
+		if (file_exists(self::CREDENTIALS_FILE)) {
+			return json_decode(file_get_contents(self::CREDENTIALS_FILE), true);
+		}
+
+		$credentials = array(
+			'encryption_key' => bin2hex(random_bytes(32)),
+		);
+
+		file_put_contents(self::CREDENTIALS_FILE, json_encode($credentials));
+
+		return $credentials;
+	}
+
+	/**
+	 * Encrypt data
+	 *
+	 * @param string $data Data to encrypt
+	 *
+	 * @return string Encrypted data
+	 *
+	 * @throws \Exception Error encrypting data
+	 */
+	private function encryptData($data) {
+		try {
+			$encryptionKey = $this->getCredentials()['encryption_key'];
+		} catch (\Exception $e) {
+			throw new \Exception('Failed to get encryption key');
+		}
+
+		try {
+			$iv = random_bytes(16);
+		} catch (\Exception $e) {
+			throw new \Exception('Failed to generate IV');
+		}
+
+		$encrypted = openssl_encrypt($data, 'AES-256-CBC', $encryptionKey, 0, $iv);
+
+		if ($encrypted === false) {
+			throw new \Exception('Failed to encrypt data');
+		}
+
+		$encrypted = base64_encode($iv . $encrypted);
+
+		if ($encrypted === false) {
+			throw new \Exception('Failed to encode data');
+		}
+
+		return $encrypted;
 	}
 }

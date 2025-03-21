@@ -196,6 +196,34 @@
 						</div>
 						<br></br>
 						<div class="col-lg-12">
+							<div class="panel-heading"><strong>Security Settings</strong></div>
+						</div>
+						<div class="form-group col-lg-12 row">
+							<label for="secure_mode_enabled" class="col-xs-6 control-label">
+								Secure Mode Enabled
+								<br>
+								<span class="attrib_desc">If Secure Mode is enabled on your property, please enter your
+									Javascript API Key to ensure visitor recognition works correctly.</span>
+							</label>
+							<div class="col-xs-6 control-label ">
+								<input type="checkbox" class="control-label col-xs-6" name="secure_mode_enabled"
+									id="secure_mode_enabled" value="1"
+									{{(hierarchy[0].security_opts.secure_mode_enabled)?'checked':''}} />
+							</div>
+						</div>
+						<div class="form-group col-lg-12 row">
+							<label for="js_api_key" class="col-xs-6 control-label">
+								Javascript API Key
+								<br>
+								<span class="attrib_desc">Used to authenticate visitor recognition when secure mode is enabled</span>
+							</label>
+							<div class="col-xs-6 control-label ">
+								<input type="password" class="form-control" name="js_api_key"
+									id="js_api_key" value="{{hierarchy[0].security_opts.js_api_key}}" />
+							</div>
+						</div>
+						<br></br>
+						<div class="col-lg-12">
 							<div class="panel-heading"><strong>Cart	Integration</strong></div>
 						</div>
 						<div class="form-group col-xs-12 row">
@@ -218,6 +246,9 @@
 							<div class="col-lg-6 col-xs-12">
 								<div id="optionsSuccessMessage" class="alert alert-success col-lg-12">
 									Successfully set widget options to your site
+								</div>
+								<div id="optionsErrorMessage" class="alert alert-danger col-lg-12">
+									Failed to set widget options to your site
 								</div>
 							</div>
 						</div>
@@ -402,59 +433,62 @@
 				store: store_id,
 				options: form.serialize(),
 			}, function (r) {
-				if (r.success) {
-					$('#optionsSuccessMessage').toggle().delay(3000).fadeOut();
+				if (!r.success) {
+					$('#optionsErrorMessage').text(r.message).toggle().delay(3000).fadeOut();
+					return;
+				}
 
-					// Update saved options
-					var fields = form.serializeArray();
-					for (store of storeHierarchy) {
-						if (store.id !== store_id) {
+				$('#optionsSuccessMessage').toggle().delay(3000).fadeOut();
+
+				// Update saved options
+				var fields = form.serializeArray();
+				for (store of storeHierarchy) {
+					if (store.id !== store_id) {
+						continue;
+					}
+
+					store.display_opts = {
+						'always_display': false,
+						'show_onfrontpage': false,
+						'show_oncategory': false,
+						'show_oncustom': [],
+						'hide_oncustom': [],
+					};
+
+					store.privacy_opts = {
+						'enable_visitor_recognition': false,
+					}
+
+					store.cart_opts = {
+						'monitor_customer_cart': false,
+					}
+
+					for (field of fields) {
+						if (field.name === 'show_oncustom') {
+							store.display_opts['show_oncustom'] = field.value.replaceAll('\r', '\n').split('\n').filter(Boolean);
 							continue;
 						}
 
-						store.display_opts = {
-							'always_display': false,
-							'show_onfrontpage': false,
-							'show_oncategory': false,
-							'show_oncustom': [],
-							'hide_oncustom': [],
-						};
-
-						store.privacy_opts = {
-							'enable_visitor_recognition': false,
+						if (field.name === 'hide_oncustom') {
+							store.display_opts['hide_oncustom'] = field.value.replaceAll('\r', '\n').split('\n').filter(Boolean);
+							continue;
 						}
 
-						store.cart_opts = {
-							'monitor_customer_cart': false,
-						}
+						// serializeArray() only includes "successful controls"
+						switch (field.name) {
+							case 'always_display':
+							case 'show_onfrontpage':
+							case 'show_oncategory':
+								store.display_opts[field.name] = true;
+								break;
 
-						for (field of fields) {
-							if (field.name === 'show_oncustom') {
-								store.display_opts['show_oncustom'] = field.value.replaceAll('\r', '\n').split('\n').filter(Boolean);
-								continue;
-							}
+							case 'enable_visitor_recognition':
+								store.privacy_opts[field.name] = true;
+								break;
 
-							if (field.name === 'hide_oncustom') {
-								store.display_opts['hide_oncustom'] = field.value.replaceAll('\r', '\n').split('\n').filter(Boolean);
-								continue;
-							}
-
-							// serializeArray() only includes "successful controls"
-							switch (field.name) {
-								case 'always_display':
-								case 'show_onfrontpage':
-								case 'show_oncategory':
-									store.display_opts[field.name] = true;
-									break;
-
-								case 'enable_visitor_recognition':
-									store.privacy_opts[field.name] = true;
-									break;
-
-								case 'monitor_customer_cart':
-									store.cart_opts[field.name] = true;
-									break;
-							}
+							case 'monitor_customer_cart':
+								store.cart_opts[field.name] = true;
+								break;
 						}
 					}
 				}

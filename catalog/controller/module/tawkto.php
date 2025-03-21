@@ -16,6 +16,8 @@ use \Tawk\Modules\UrlPatternMatcher;
 
 class Tawkto extends Controller
 {
+	public const CREDENTIALS_FILE = DIR_EXTENSION . 'tawkto/system/config/credentials.json';
+
 	/**
 	 * __construct
 	 */
@@ -34,10 +36,11 @@ class Tawkto extends Controller
 		$this->load->model('setting/setting');
 
 		$data = array();
-		$data['visitor'] = $this->getVisitor();
 
 		$privacy_opts = $this->config->get('tawkto_privacy');
 		$cart_opts = $this->config->get('tawkto_cart');
+		$security_opts = $this->config->get('tawkto_security');
+		$config_version = $this->config->get('tawkto_config_version');
 
 		$settings = $this->getCurrentSettings();
 		if (isset($settings['module_tawkto_privacy'])) {
@@ -46,8 +49,19 @@ class Tawkto extends Controller
 		if (isset($settings['module_tawkto_cart'])) {
 			$cart_opts = $settings['module_tawkto_cart'];
 		}
+		if (isset($settings['module_tawkto_security'])) {
+			$security_opts = $settings['module_tawkto_security'];
+		}
+		if (isset($settings['module_tawkto_config_version'])) {
+			$config_version = $settings['module_tawkto_config_version'];
+		}
 
-		$data['enable_visitor_recognition'] = $privacy_opts['enable_visitor_recognition'];
+		$data['visitor'] = $this->getVisitor(array(
+			'enable_visitor_recognition' => $privacy_opts['enable_visitor_recognition'],
+			'secure_mode_enabled' => $security_opts['secure_mode_enabled'],
+			'js_api_key' => $security_opts['js_api_key'],
+			'config_version' => $config_version,
+		));
 		$data['can_monitor_customer_cart'] = $cart_opts['monitor_customer_cart'];
 
 		$widget = $this->getWidget();
@@ -143,16 +157,34 @@ class Tawkto extends Controller
 	/**
 	 * Get visitor details
 	 *
+	 * @param array $params
 	 * @return string|null
 	 */
-	private function getVisitor()
+	private function getVisitor($params)
 	{
+		if ($params['enable_visitor_recognition'] === false) {
+			return null;
+		}
+
+		$secure_mode_enabled = $params['secure_mode_enabled'];
+		$encrypted_js_api_key = $params['js_api_key'];
+		$config_version = $params['config_version'];
+
 		$logged_in = $this->customer->isLogged();
 		if ($logged_in) {
 			$data = array(
 					'name' => $this->customer->getFirstName().' '.$this->customer->getLastName(),
 					'email' => $this->customer->getEmail(),
 				);
+
+			if ($secure_mode_enabled && !is_null($encrypted_js_api_key)) {
+				$data['hash'] = $this->getVisitorHash(array(
+					'email' => $this->customer->getEmail(),
+					'js_api_key' => $encrypted_js_api_key,
+					'config_version' => $config_version,
+				));
+			}
+
 			return json_encode($data);
 		}
 
@@ -168,5 +200,90 @@ class Tawkto extends Controller
 	{
 		$store_id = $this->config->get('config_store_id');
 		return $this->model_setting_setting->getSetting('module_tawkto', $store_id);
+	}
+
+	/**
+	 * Get visitor hash
+	 *
+	 * @param array $params
+	 * @return string
+	 */
+	private function getVisitorHash($params)
+	{
+		$js_api_key = $params['js_api_key'];
+
+		if (empty($js_api_key)) {
+			return '';
+		}
+
+		if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+			session_start();
+		}
+
+		$configVersion = $params['config_version'];
+		$email = $params['email'];
+
+		if (isset($_SESSION['tawkto_visitor_hash'])) {
+			$currentSession = $_SESSION['tawkto_visitor_hash'];
+
+			if (isset($currentSession['hash']) &&
+				$currentSession['email'] === $email &&
+				$currentSession['config_version'] === $configVersion) {
+				return $currentSession['hash'];
+			}
+		}
+
+		try {
+			$jsApiKey = $this->decryptData($js_api_key);
+		} catch (\Exception $e) {
+			error_log($e->getMessage());
+
+			return '';
+		}
+
+		$hash = hash_hmac('sha256', $email, $jsApiKey);
+
+		$_SESSION['tawkto_visitor_hash'] = array(
+			'hash' => $hash,
+			'email' => $email,
+			'config_version' => $configVersion,
+		);
+
+		return $hash;
+	}
+
+	/**
+	 * Decrypt data
+	 * @param mixed $data
+	 * @return string Decrypted data
+	 */
+	private function decryptData($data)
+	{
+		if (!file_exists(self::CREDENTIALS_FILE)) {
+			throw new \Exception('Credentials file not found');
+		}
+
+		$credentials = json_decode(file_get_contents(self::CREDENTIALS_FILE), true);
+
+		if (!isset($credentials['encryption_key'])) {
+			throw new \Exception('Encryption key not found');
+		}
+
+		$decoded = base64_decode($data);
+
+		if ($decoded === false) {
+			throw new \Exception('Failed to decode data');
+		}
+
+		$iv = substr($decoded, 0, 16);
+		$encrypted_data = substr($decoded, 16);
+
+		$decrypted_data = openssl_decrypt($encrypted_data, 'AES-256-CBC', $credentials['encryption_key'], 0, $iv);
+
+		if ($decrypted_data === false) {
+			throw new \Exception('Failed to decrypt data');
+		}
+
+		return $decrypted_data;
 	}
 }
