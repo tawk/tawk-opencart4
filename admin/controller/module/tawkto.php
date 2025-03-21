@@ -308,7 +308,9 @@ class Tawkto extends Controller
 							break;
 						}
 
-						if (strlen(trim($value)) !== 40) {
+						$value = trim($value);
+
+						if (strlen($value) !== 40) {
 							throw new \Exception('Invalid API key.');
 						}
 
