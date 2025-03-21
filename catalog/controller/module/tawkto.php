@@ -33,10 +33,6 @@ class Tawkto extends Controller
 	 */
 	public function index()
 	{
-		if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
-			session_start();
-		}
-
 		$this->load->model('setting/setting');
 
 		$data = array();
@@ -166,14 +162,13 @@ class Tawkto extends Controller
 	 */
 	private function getVisitor($params)
 	{
-		$enable_visitor_recognition = $params['enable_visitor_recognition'];
+		if ($params['enable_visitor_recognition'] === false) {
+			return null;
+		}
+
 		$secure_mode_enabled = $params['secure_mode_enabled'];
 		$encrypted_js_api_key = $params['js_api_key'];
 		$config_version = $params['config_version'];
-
-		if (!$enable_visitor_recognition) {
-			return null;
-		}
 
 		$logged_in = $this->customer->isLogged();
 		if ($logged_in) {
@@ -215,6 +210,10 @@ class Tawkto extends Controller
 	 */
 	private function getVisitorHash($params)
 	{
+		if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+			session_start();
+		}
+
 		$configVersion = $params['config_version'];
 		$email = $params['email'];
 		$js_api_key = $params['js_api_key'];
