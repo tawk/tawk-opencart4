@@ -16,6 +16,8 @@ use \Tawk\Modules\UrlPatternMatcher;
 
 class Tawkto extends Controller
 {
+	public const CREDENTIALS_FILE = DIR_EXTENSION . 'tawkto/system/config/credentials.json';
+
 	/**
 	 * __construct
 	 */
@@ -257,13 +259,11 @@ class Tawkto extends Controller
 	 */
 	private function decryptData($data)
 	{
-		$filePath = DIR_EXTENSION . 'tawkto/system/config/credentials.json';
-
-		if (!file_exists($filePath)) {
+		if (!file_exists(self::CREDENTIALS_FILE)) {
 			throw new \Exception('Credentials file not found');
 		}
 
-		$credentials = json_decode(file_get_contents($filePath), true);
+		$credentials = json_decode(file_get_contents(self::CREDENTIALS_FILE), true);
 
 		if (!isset($credentials['encryption_key'])) {
 			throw new \Exception('Encryption key not found');

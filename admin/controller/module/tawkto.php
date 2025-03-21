@@ -13,6 +13,7 @@ use \Opencart\System\Engine\Controller;
 
 class Tawkto extends Controller
 {
+	public const CREDENTIALS_FILE = DIR_EXTENSION . 'tawkto/system/config/credentials.json';
 	public const NO_CHANGE = 'nochange';
 
 	/**
@@ -476,17 +477,15 @@ class Tawkto extends Controller
 	 * @return Array
 	 */
 	private function getCredentials() {
-		$filePath = DIR_EXTENSION . 'tawkto/system/config/credentials.json';
-
-		if (file_exists($filePath)) {
-			return json_decode(file_get_contents($filePath), true);
+		if (file_exists(self::CREDENTIALS_FILE)) {
+			return json_decode(file_get_contents(self::CREDENTIALS_FILE), true);
 		}
 
 		$credentials = array(
 			'encryption_key' => bin2hex(random_bytes(32)),
 		);
 
-		file_put_contents($filePath, json_encode($credentials));
+		file_put_contents(self::CREDENTIALS_FILE, json_encode($credentials));
 
 		return $credentials;
 	}
