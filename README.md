@@ -31,6 +31,9 @@ Visit our [Help Center](https://help.tawk.to/) for answers to FAQs
 
 ## Changelog
 
+### 1.1.3
+* Fix widget not loading on oc4.1.x.x
+
 ### 1.1.2
 * Fix module status
 
