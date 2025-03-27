@@ -82,7 +82,7 @@ class Tawkto extends Controller
 		$data = array(
 			'code' => 'tawkto_widget',
 			'description' => 'tawk.to chat widget',
-			'trigger' => 'catalog/view/common/content_bottom/after',
+			'trigger' => 'catalog/view/common/footer/after',
 			'action' => 'extension/tawkto/module/tawkto',
 			'status' => 1,
 			'sort_order' => 0

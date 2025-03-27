@@ -29,7 +29,7 @@ class Tawkto extends Controller
 	/**
 	 * Entry point
 	 */
-	public function index()
+	public function index(&$route, &$args, &$output)
 	{
 		$this->load->model('setting/setting');
 
@@ -57,7 +57,10 @@ class Tawkto extends Controller
 			$data['widget_id'] = $widget['widget_id'];
 		}
 
-		return $this->load->view('extension/tawkto/module/tawkto', $data);
+		$view = $this->load->view('extension/tawkto/module/tawkto', $data);
+
+		$end_body_tag = '</body>';
+		$output = str_replace($end_body_tag, $view . $end_body_tag, $output);
 	}
 
 	/**
